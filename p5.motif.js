@@ -6,12 +6,19 @@ foreach(element in scene){
 eclipse.draw = function(){p5.ecclipse({size: this.sizeVal()}, ...)}
 this.sizeVal() = sum(this.inputSizes)
 this.inputSizes = [initialSize, energy]
-energy = new Energy(){ this.fft = new FFT(options); return this.fft.energy(); this.effects = [normalize, smooth]}
+energy = new Energy(){ this.fft = window.fft || new FFT(options); return this.fft.energy(); this.effects = [normalize, smooth]}
 foreach(this.effects as effect){
     energy.output = effect.apply(energy.output)
 }
 
 
+fft = new FFT({smooth: 10});
+energy = new fft.energy()
+energy.effects.push(new Normalize({}))
+
+function addEffect(analyzer, property, effect){
+    analyzer.[property].addEffect(effect);
+}
 
 
 /*
@@ -40,6 +47,7 @@ fft
 
 beat
     properties
+        frequency
         decayrate
         threshold
         beatspacing
