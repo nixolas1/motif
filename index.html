@@ -4,6 +4,8 @@
         <title>Motif</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
         <link href="css/fonts.css" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet">
+
         <script type="text/javascript" src="lib/jquery-2.1.1.min.js"></script>
         <script src="lib/materialize.min.js"></script>
         <script language="javascript" type="text/javascript" src="lib/p5.js"></script>
@@ -12,6 +14,8 @@
         <script language="javascript" type="text/javascript" src="sketch.js"></script>
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
         <style>
             body{
                 margin: 0;
@@ -24,10 +28,19 @@
     </head>
 
     <body>
-        <div class="main">
-            <h3 class="thin center-align" id="test_out" >Motif</h3>
-            <canvas id="canvas" height="500px" width="600px"></canvas>
-        </div>
+        <!--<nav class="blue-grey lighten-4" role="navigation">
+            <div class="nav-wrapper container">
+                <a id="logo-container" href="#" class="brand-logo">Motif</a>
+            </div>
+        </nav>
+        -->
+
+        <ul id="nav-mobile" class="side-nav fixed">   
+            <li class="bold"><a href="about.html" class="waves-effect waves-teal">About</a></li>
+        </ul>
+
+        <main id="canvas-container">
+        </main>
 
     </body>
 </html>
