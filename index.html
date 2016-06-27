@@ -13,8 +13,9 @@
         <script language="javascript" type="text/javascript" src="lib/p5.js"></script>
         <script language="javascript" src="lib/p5.dom.js"></script>
         <script language="javascript" src="lib/p5.sound.js"></script>
-        <script language="javascript" src="p5.motif.js"></script>
+        <script language="javascript" src="lib/two.js"></script>
 
+        <script language="javascript" src="p5.motif.js"></script>
         <script language="javascript" type="text/javascript" src="sketch.js"></script>
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -31,11 +32,20 @@
             -->
 
             <ul id="nav-mobile" class="side-nav fixed">   
-                <li class="bold"><a href="about.html" class="waves-effect waves-teal">About</a></li>
+                <li ng-repeat="object in objects">
+                    <a href ng-click="addObject(object)" class="waves-effect waves-teal">{{object.name}}</a>
+                </li>
             </ul>
 
-            <ul id="nav-mobile" class="side-nav right fixed">   
-                <li class="bold"><a href="about.html" class="waves-effect waves-teal">About</a></li>
+            <ul id="nav-mobile" class="side-nav right fixed">
+                <li><h6>{{open.name}}</h6></li>
+                <li ng-repeat="(name, prop) in open.props">
+                    <div class="input-field">
+                        <span>{{name}}</span>
+                        <input placeholder="{{name}}" id="{{$parent.$index+open.name+name}}" max="{{prop.max}}" min="{{prop.min}}" type="{{prop.type || 'number'}}" ng-model="prop.value">
+                    </div>
+                    <label></label>
+                </li>
             </ul>
 
             <main id="canvas-container">

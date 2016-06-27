@@ -2,9 +2,33 @@ var app = angular.module('motif', []);
 app.controller('mainCtrl', function($scope, $element) {
     
     $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
-    var song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)]
+    var song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)];
+    var two = new Two();
+    $scope.two = two;
 
+    $scope.scene = {
+        objects: []
+    };
 
+    $scope.objects = {
+        ellipse: {
+            name: "Ellipse",
+            add: two.makeCircle,
+            props: {
+                x: {value: 0, min: -100, max: 100},
+                y: {value: 0, min: -100, max: 100},
+                size: {min:0, value: 100},
+            },
+            inputs: {
+
+            }
+        }
+    }
+
+    $scope.addObject = function(object){
+        $scope.scene.objects.push(object);
+        $scope.open = object;
+    }
 
     var sketch = function(p){
         var AUDIO_FILE = "songs/"+song;

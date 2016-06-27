@@ -21,8 +21,17 @@ body{
     right: 0;
 }
 
+.side-nav.right li{
+  padding: 0 15px;
+}
+
 main {
     height: 100%;
     width: 100%;
     position: fixed;
+}
+
+.input-field input[type=number].ng-invalid {
+  border-bottom: 1px solid #FF0000;
+  box-shadow: 0 1px 0 0 #FF0000;
 }
