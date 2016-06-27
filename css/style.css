@@ -1,11 +1,24 @@
 header, main, footer {
   padding-left: 240px;
+  padding-right: 240px;
 }
 
 @media only screen and (max-width : 992px) {
   header, main, footer {
     padding-left: 0;
   }
+}
+
+body{
+    margin: 0;
+    background-color: #ccc;
+}
+.thin{
+    font-weight: 300;
+}
+.side-nav.right{
+    left: auto;
+    right: 0;
 }
 
 main {
