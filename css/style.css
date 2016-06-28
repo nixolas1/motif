@@ -9,13 +9,24 @@ header, main, footer {
   }
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body{
     margin: 0;
     background-color: #ccc;
+
 }
 .thin{
     font-weight: 300;
 }
+
+.side-nav {
+    box-shadow: none;
+}
+
 .side-nav.right{
     left: auto;
     right: 0;
@@ -28,7 +39,26 @@ body{
 main {
     height: 100%;
     width: 100%;
-    position: fixed;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /*position: fixed;*/
+}
+
+#canvas-container {
+  flex: 1;
+  border: 1px solid black;
+  border-top: none;
+
+}
+
+footer.page-footer {
+  overflow-y: auto;
+  bottom: 0;
+  width: 100%;
+  height: 150px;
+  background-color: rgb(237, 237, 237);
+  margin-top: 0;
 }
 
 .input-field input[type=number].ng-invalid {

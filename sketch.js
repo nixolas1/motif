@@ -13,12 +13,33 @@ app.controller('mainCtrl', function($scope, $element) {
         }
     }
 
+    //add html input field type here, else it will be a number field
+    $scope.htmlType = function(type){
+        switch(type){
+            case "range":
+            case "text":
+                return type;
+
+            case "color":
+                return "range";
+            
+            default:
+                return "number";
+        }
+    }
+
+
 
     $scope.scene = {
         objects: [],
-
-        draw: function(p5js){
+        /*update: function(p5js){
             for (var i = this.objects.length - 1; i >= 0; i--) {
+                this.objects[i].update(p5js);
+            };
+        },*/
+        draw: function(p5js){
+            var len = this.objects.length - 1;
+            for (var i = 0; i <= len; i++) {
                 this.objects[i].draw(p5js);
             };
         },
@@ -30,24 +51,22 @@ app.controller('mainCtrl', function($scope, $element) {
     $scope.objects = {
         ellipse: {
             name: "ellipse",
-            draw: function(prop, p5){
+            draw: function(p5){
+                var prop = this.props;
                 p5.strokeWeight(prop.stroke.value);
                 p5.fill(prop.color.hue, prop.color.saturation, prop.color.brightness, prop.color.alpha);
-                p5.ellipse(sizeMap(prop.x.value, p5.width), sizeMap(prop.y.value, p5.height), prop.width.value, prop.height.value);
+                p5.ellipse(posMap(prop.x.value, p5.width), posMap(prop.y.value, p5.height), sizeMap(prop.width.value, p5.height), sizeMap(prop.height.value, p5.height));
             },
-            update: function(p5){
 
-            },
             live: {},
             props: {
-                x: {value: 0, min: -100, max: 100},
-                y: {value: 0, min: -100, max: 100},
-                height: {min:0, value: 100},
-                width: {min:0, value: 100},
-                color: {hue:0, saturation:255, brightness: 100, alpha: 1, type:"color"},
+                x: {value: 0, min: -100, max: 100, step: 0.1, type:"range"},
+                y: {value: 0, min: -100, max: 100, step: 0.1, type:"range"},
+                height: {value: 20, min: 0, max: 100, step: 0.1, type:"range"},
+                width: {value: 20, min: 0, max: 100, step: 0.1, type:"range"},
+                color: {hue:0, saturation:100, brightness: 100, alpha: 50, type:"color"},
                 stroke: {value: 5, min:0},
             },
-            inputs: [],
         },
 
         background: {
@@ -57,23 +76,57 @@ app.controller('mainCtrl', function($scope, $element) {
                 p5.background(p.color.hue, p.color.saturation, p.color.brightness, p.color.alpha);
             },
             props: {
-                color: {hue:0, saturation:255, brightness: 100, alpha: 1, type:"color"},
+                color: {hue:0, saturation:0, brightness: 100, alpha: 100, type:"color", min: 0, max: 100, step:0.1},
             },
-            
-            inputs: [
-                {
-                    input: function(p){
-                        amp
-                    },
-                    affected: [color.saturation],
-                },
-            ]
+
         },
+
+        clear: {
+            name: "clear",
+            draw: function(p5){
+                this.live.every -= 1;
+                if(this.live.every <= 0){
+                    this.live.every = this.props.every.value;
+                    p5.clear();
+                }
+            },
+            live: {
+                every: 0,
+            },
+            props: {
+                every: {value: 0}
+            }
+        }
     };
 
     $scope.inputs = {
         amplitude: {
+            name: "amplitude",
+            add: function(p5){
+                this.instance = new p5.Amplitude();
+                this.instance.setInput(audio);
+            },
+            value: function(p5){
+                if(this.props.smoothing > 0)
+                    this.instance.smooth(this.props.smoothing);
 
+                if(this.props.normalize != this.live.normalizeToggle){
+                    this.instance.toggleNormalize(this.props.normalize);
+                    this.live.normalizeToggle = this.props.normalize;
+                }
+
+                return this.instance.getLevel();
+            },
+            props: {
+                smoothing: {value: 0.5, min:0, max:1, step:0.01, type:"range"},
+                normalize: {value: true, type:"boolean"},
+            },
+            live: {
+                normalizeToggle: false,
+            },
+            instance: null,
+            type: "number",
+            affected: [],
         }
     }
 
@@ -95,8 +148,16 @@ app.controller('mainCtrl', function($scope, $element) {
         $scope.open = newObject;
     }
 
+    $scope.selected = function(object){
+        $scope.open = object;
+    }
+
     function sizeMap(input, biggest){
-        $scope.sketch.map(input, -100, 100, 0, biggest);
+        return $scope.sketch.map(input, 0, 100, 0, biggest);
+    }
+
+    function posMap(input, biggest){
+        return $scope.sketch.map(input, -100, 100, 0, biggest);
     }
 
     var colorToParameters = function(color){
@@ -119,10 +180,9 @@ app.controller('mainCtrl', function($scope, $element) {
             canvas.parent(parent.attr('id'));
 
             p.background(200,200,200);
-            p.colorMode(p.HSB);
+            p.colorMode(p.HSB, 100, 100, 100, 100);
 
-            analyzer = new p5.Amplitude();
-            analyzer.setInput(audio);
+            
             
             fft = new p5.FFT();
             fft.setInput(audio);
@@ -130,6 +190,8 @@ app.controller('mainCtrl', function($scope, $element) {
             peakDetect = new p5.PeakDetect();
 
             audio.play();
+
+            $scope.addObject($scope.objects.clear);
         }
 
         p.draw = function () {
