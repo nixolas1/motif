@@ -1,0 +1,62 @@
+todo:
+ok1. add object to scene by clicking
+ok2. sync with options
+3. inputs
+
+
+            /*p.clear();
+            var rms = analyzer.getLevel();
+
+
+            // Draw an ellipse with size based on volume
+            p.ellipse(p.width/2-150, p.height/2, 10+rms*300, 10+rms*300);
+
+
+            var spectrum = fft.analyze();
+
+            peakDetect.update(fft);
+
+            if ( peakDetect.isDetected ) {
+                ellipseWidth = 50;
+            } else {
+                ellipseWidth *= 0.95;
+            }
+
+            p.ellipse(p.width/2, p.height/2, ellipseWidth, ellipseWidth);
+
+            p.beginShape();
+            p.vertex(0, p.height);
+            var len = spectrum.length-vertexSize;
+            for (i = 0; i<len; i+=vertexSize) {
+             p.vertex(i, p.map(spectrum[i], 0, 255, p.height, 0) );
+            }
+            p.vertex(p.width, p.height);
+            p.endShape();*/
+
+
+
+    /*
+
+ element: {
+        name: "element",
+        add: function(prop){
+            return null;
+        },
+        draw: function(p5){
+            
+        },
+        instance: null,
+        props: {
+            x: {value: 0, min: -100, max: 100},
+        },
+        inputs: {
+
+        }
+    },
+
+*/
+
+
+for effect in effects:
+    for affect in effeect.affected:
+        affect += output;
