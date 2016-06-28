@@ -32,11 +32,8 @@ app.controller('mainCtrl', function($scope, $element) {
 
     $scope.scene = {
         objects: [],
-        /*update: function(p5js){
-            for (var i = this.objects.length - 1; i >= 0; i--) {
-                this.objects[i].update(p5js);
-            };
-        },*/
+        inputs: [],
+
         draw: function(p5js){
             var len = this.objects.length - 1;
             for (var i = 0; i <= len; i++) {
@@ -99,6 +96,13 @@ app.controller('mainCtrl', function($scope, $element) {
         }
     };
 
+
+
+
+
+
+
+
     $scope.inputs = {
         amplitude: {
             name: "amplitude",
@@ -130,15 +134,6 @@ app.controller('mainCtrl', function($scope, $element) {
         }
     }
 
-    $scope.updateObject = function(object){ //computes objects final values from inputs
-        var inputs = object.inputs;
-        for (var i = inputs.length - 1; i >= 0; i--) {
-            input = inputs[i];
-            for (var j = input.affected.length - 1; j >= 0; j--) {
-                input.affected[j]
-            };
-        };   
-    }
 
     $scope.addObject = function(object){
         var newObject = angular.copy(object);
@@ -148,6 +143,20 @@ app.controller('mainCtrl', function($scope, $element) {
         $scope.open = newObject;
     }
 
+    $scope.addInput = function(input){
+        var newInput = angular.copy(input);
+        if(newInput.add)
+            newInput.add($scope.sketch);
+
+        $scope.scene.inputs.push(newInput);
+        $scope.open = newInput;
+    }
+/*
+    OK: scene.inputs[0].affected.push(scene.objects[0].live.stroke.value)
+    vs
+    scene.objects[0].inputs.push({affects: stroke, value: inputs[0].value})
+
+*/
     $scope.selected = function(object){
         $scope.open = object;
     }
@@ -171,7 +180,7 @@ app.controller('mainCtrl', function($scope, $element) {
         var audio, analyzer, fft, canvas, peakDetect;
 
         p.preload = function(){
-            audio = p.loadSound(AUDIO_FILE);
+            //audio = p.loadSound(AUDIO_FILE);
             parent = $("#canvas-container");
         }
 
@@ -182,14 +191,8 @@ app.controller('mainCtrl', function($scope, $element) {
             p.background(200,200,200);
             p.colorMode(p.HSB, 100, 100, 100, 100);
 
-            
-            
-            fft = new p5.FFT();
-            fft.setInput(audio);
 
-            peakDetect = new p5.PeakDetect();
-
-            audio.play();
+            //audio.play();
 
             $scope.addObject($scope.objects.clear);
         }
