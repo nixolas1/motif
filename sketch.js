@@ -1,8 +1,35 @@
 var app = angular.module('motif', []);
 app.controller('mainCtrl', function($scope, $element) {
     
-    $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
-    var song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)];
+    var audio, canvas;
+
+    var Number = function(minimum){
+        return {value: 0, min: minimum, live: 0}
+    }
+
+    var Range = function(start, minimum, maximum){
+        return {value: start, min: minimum, max: maximum, step: 0.1, live: 0, type:"range"};
+    }
+
+    var Color = function(hue, bright){
+        return {hue: {live:0, value: hue||0}, saturation: {live:0, value: 100}, brightness: {live:0, value: bright||100}, alpha: {live:0, value: 100}, min: 0, max: 100, step:0.1, type:"color"};
+    }
+
+    function toArgs(p, type, sketch){
+        //[color.hue.value+color.hue.live, prop.color.saturation, prop.color.brightness, prop.color.alpha]
+        //posMap(prop.x.value + prop.x.live, p5.width), posMap(prop.y.value, p5.height), sizeMap(prop.width.value, p5.width), sizeMap(prop.height.value, p5.width)
+        switch(type){
+            case "color":
+                p = p.color;
+                return [p.hue.value+p.hue.live, p.saturation.value+p.saturation.live, p.brightness.value+p.brightness.live, p.alpha.value+p.alpha.live];
+            
+            case "xywh":
+                return [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value +  + p.x.live, sketch.width)];
+
+        }
+        
+    }
+
 
     $scope.exposedProps = function(type){
         switch(type){
@@ -22,17 +49,33 @@ app.controller('mainCtrl', function($scope, $element) {
 
             case "color":
                 return "range";
+
+            case "boolean":
+                return "checkbox";
             
             default:
                 return "number";
         }
     }
 
-
-
     $scope.scene = {
         objects: [],
         inputs: [],
+
+        update: function(p5js){
+            var inputs = this.inputs;
+            for (var i = 0, inLen = inputs.length; i < inLen; i++) {
+
+                var input = inputs[i];
+                    aff = input.affected;
+                    val = input.value;
+
+                for(var j = 0, affLen = aff.length; j < affLen; j++){
+                    affected[j].live += val * affected[j].modifier;
+                }
+
+            };
+        },
 
         draw: function(p5js){
             var len = this.objects.length - 1;
@@ -44,25 +87,29 @@ app.controller('mainCtrl', function($scope, $element) {
 
 
 
-
     $scope.objects = {
         ellipse: {
             name: "ellipse",
             draw: function(p5){
                 var prop = this.props;
-                p5.strokeWeight(prop.stroke.value);
-                p5.fill(prop.color.hue, prop.color.saturation, prop.color.brightness, prop.color.alpha);
-                p5.ellipse(posMap(prop.x.value, p5.width), posMap(prop.y.value, p5.height), sizeMap(prop.width.value, p5.height), sizeMap(prop.height.value, p5.height));
+                if(!prop.stroke.value){
+                    p5.noStroke();
+                } else {
+                    p5.stroke();
+                    p5.strokeWeight(prop.stroke.value);
+                }
+
+                p5.fill.apply(p5, toArgs(prop, "color"));
+                p5.ellipse.apply(p5, toArgs(prop, "xywh", p5));
             },
 
-            live: {},
             props: {
-                x: {value: 0, min: -100, max: 100, step: 0.1, type:"range"},
-                y: {value: 0, min: -100, max: 100, step: 0.1, type:"range"},
-                height: {value: 20, min: 0, max: 100, step: 0.1, type:"range"},
-                width: {value: 20, min: 0, max: 100, step: 0.1, type:"range"},
-                color: {hue:0, saturation:100, brightness: 100, alpha: 50, type:"color"},
-                stroke: {value: 5, min:0},
+                x: new Range(0, -100, 100),
+                y: new Range(0, -100, 100),
+                height: new Range(20, 0, 200),
+                width: new Range(20, 0, 200),
+                color: new Color(0, 0),
+                stroke: new Number(0),
             },
         },
 
@@ -70,10 +117,10 @@ app.controller('mainCtrl', function($scope, $element) {
             name: "background",
             draw: function(p5){
                 var p = this.props;
-                p5.background(p.color.hue, p.color.saturation, p.color.brightness, p.color.alpha);
+                p5.background(toArgs(prop, "color"));
             },
             props: {
-                color: {hue:0, saturation:0, brightness: 100, alpha: 100, type:"color", min: 0, max: 100, step:0.1},
+                color: new Color(),
             },
 
         },
@@ -98,19 +145,14 @@ app.controller('mainCtrl', function($scope, $element) {
 
 
 
-
-
-
-
-
     $scope.inputs = {
         amplitude: {
             name: "amplitude",
-            add: function(p5){
+            add: function(){
                 this.instance = new p5.Amplitude();
                 this.instance.setInput(audio);
             },
-            value: function(p5){
+            value: function(p){
                 if(this.props.smoothing > 0)
                     this.instance.smooth(this.props.smoothing);
 
@@ -122,8 +164,9 @@ app.controller('mainCtrl', function($scope, $element) {
                 return this.instance.getLevel();
             },
             props: {
-                smoothing: {value: 0.5, min:0, max:1, step:0.01, type:"range"},
+                smoothing: new Range(0.5, 0, 1),
                 normalize: {value: true, type:"boolean"},
+                output: {min:0, max:1, type:"number"},
             },
             live: {
                 normalizeToggle: false,
@@ -141,6 +184,8 @@ app.controller('mainCtrl', function($scope, $element) {
             newObject.instance = newObject.add(newObject.props);
         $scope.scene.objects.push(newObject);
         $scope.open = newObject;
+
+        return newObject;
     }
 
     $scope.addInput = function(input){
@@ -150,9 +195,12 @@ app.controller('mainCtrl', function($scope, $element) {
 
         $scope.scene.inputs.push(newInput);
         $scope.open = newInput;
+
+        return newInput;
     }
 /*
     OK: scene.inputs[0].affected.push(scene.objects[0].live.stroke.value)
+
     vs
     scene.objects[0].inputs.push({affects: stroke, value: inputs[0].value})
 
@@ -174,13 +222,14 @@ app.controller('mainCtrl', function($scope, $element) {
     }
 
     var sketch = function(p){
-        var AUDIO_FILE = "songs/"+song;
-        console.log(song);
         var parent;
-        var audio, analyzer, fft, canvas, peakDetect;
 
         p.preload = function(){
-            //audio = p.loadSound(AUDIO_FILE);
+            $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
+            var song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)];
+            var AUDIO_FILE = "songs/"+song;
+            
+            audio = p.loadSound(AUDIO_FILE);
             parent = $("#canvas-container");
         }
 
@@ -188,13 +237,13 @@ app.controller('mainCtrl', function($scope, $element) {
             canvas = p.createCanvas(parent.width(), parent.height());
             canvas.parent(parent.attr('id'));
 
+            //init p5
+            
             p.background(200,200,200);
             p.colorMode(p.HSB, 100, 100, 100, 100);
+            audio.play();
 
 
-            //audio.play();
-
-            $scope.addObject($scope.objects.clear);
         }
 
         p.draw = function () {
@@ -204,6 +253,15 @@ app.controller('mainCtrl', function($scope, $element) {
 
     $scope.sketch = new p5(sketch, $element[0]);
 
+
+    //testing
+    
+
+            $scope.addObject($scope.objects.clear);
+            var ellipse = $scope.addObject($scope.objects.ellipse);
+
+            var amp = $scope.addInput($scope.inputs.amplitude);
+            amp.affected.push({obj:ellipse, prop:"height", modifier:10});
     
 });
 

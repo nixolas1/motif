@@ -1,4 +1,4 @@
-header, main, footer {
+header, main {
   padding-left: 240px;
   padding-right: 240px;
 }
@@ -11,7 +11,6 @@ header, main, footer {
 
 html, body {
   height: 100%;
-  overflow: hidden;
 }
 
 body{
@@ -52,7 +51,7 @@ main {
 
 }
 
-footer.page-footer {
+footer.footer {
   overflow-y: auto;
   bottom: 0;
   width: 100%;

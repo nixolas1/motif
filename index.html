@@ -29,28 +29,65 @@
         </nav>
         -->
 
-        <ul id="nav-mobile" class="side-nav fixed">   
-            <li ng-repeat="object in objects">
-                <a href ng-click="addObject(object)" class="waves-effect waves-teal">{{object.name}}</a>
-            </li>
+        <ul id="nav-mobile" class="side-nav fixed">
+            <ul class="tabs">
+                <li class="tab col s3"><a href="#add-tab" class="active">Add</a></li>
+            </ul>
+
+            <div id="add-tab">
+
+                <li><a class="dropdown-button" href data-activates="add-objects">Objects<i class="mdi-navigation-arrow-drop-down right"></i></a></li>
+                <ul id='add-objects' class='dropdown-content'>
+                    <li ng-repeat="object in objects">
+                        <a href ng-click="addObject(object)" class="waves-effect waves-teal">{{object.name}}</a>
+                    </li>
+                </ul>
+
+                <li><a class="dropdown-button" href data-activates="add-inputs">Inputs<i class="mdi-navigation-arrow-drop-down right"></i></a></li>
+                <ul id='add-inputs' class='dropdown-content'>
+                    <li ng-repeat="input in inputs">
+                        <a href ng-click="addInput(input)" class="waves-effect waves-teal">{{input.name}}</a>
+                    </li>
+                </ul>
+
+                
+            </div>
         </ul>
 
         <ul id="nav-mobile" class="side-nav right fixed">
-            <li><h6>{{open.name}}</h6></li>
-            <li ng-repeat="(name, prop) in open.props">
-                <div class="input-field range-field" ng-repeat="field in exposedProps(prop.type)" ng-class="{range-field: prop.type =='range'">
-                    <input ng-required="true" placeholder="{{name}} {{field}}" id="{{$parent.$index+open.name+name+field}}" max="{{prop.max}}" min="{{prop.min}}" step="{{prop.step}}" type="{{htmlType(prop.type)}}" ng-model="prop[field]">
-                    <label for="{{$parent.$index+open.name+name+field}}">{{ field != 'value' ? field : name}}</label>
-                </div>
-                <label></label>
-            </li>
+            <ul class="tabs">
+                <li class="tab col s3"><a href="#objects-tab">Edit</a></li>
+            </ul>
+
+            <div id="objects-tab">
+                <li><h6>{{open.name}}</h6></li>
+                <li ng-repeat="(name, prop) in open.props">
+                    <div class="input-field range-field" ng-repeat="field in exposedProps(prop.type)">
+                        <input ng-required="true" placeholder="{{name}} {{field}}" id="{{$parent.$index+open.name+name+field}}" max="{{prop.max}}" min="{{prop.min}}" step="{{prop.step}}" type="{{htmlType(prop.type)}}" ng-model="prop[field]">
+                        <label for="{{$parent.$index+open.name+name+field}}">{{ field != 'value' ? field : name}}</label>
+                    </div>
+                </li>
+
+            </div>
         </ul>
 
         <main >
             <div id="canvas-container" height="0px"></div>
-            <footer class="page-footer">
-                <div class="collection">
-                    <a ng-repeat="object in scene.objects" ng-click="selected(object)" href class="collection-item">{{object.name}}</a>
+
+            <footer class="footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col s6">
+                            <div class="collection">
+                                <a ng-repeat="object in scene.objects" ng-click="selected(object)" href class="collection-item">{{object.name}}</a>
+                            </div>
+                        </div>
+                        <div class="col s6">
+                            <div class="collection">
+                                <a ng-repeat="input in scene.inputs" ng-click="selected(input)" href class="collection-item">{{input.name}}</a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </footer>
         </main>
