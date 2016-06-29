@@ -177,20 +177,9 @@ app.controller('mainCtrl', function($scope, $element) {
                 this.instance.setInput(audio);
             },
             value: function(p){
-                var prop = this.props;
-                if(prop.smoothing > 0)
-                    this.instance.smooth(prop.smoothing);
-
-                if(prop.normalize.value != this.live.normalizeToggle){
-                    this.instance.toggleNormalize(prop.normalize.value);
-                    this.live.normalizeToggle = prop.normalize.value;
-                }
-
                 return this.instance.getLevel();
             },
             props: {
-                smoothing: new RangeField(0.4, 0.0, 1.0),
-                normalize: {value: true, type:"boolean"},
                 output: {min:0, max:1, type:"number", hidden:true},
             },
             live: {
@@ -292,6 +281,19 @@ app.controller('mainCtrl', function($scope, $element) {
       if ('type' in attrs && attrs.type.toLowerCase() === 'range') {
         ngModel.$parsers.push(parseFloat);
       }
+    }
+  };
+})
+.directive('subnav', function() {
+  return {
+    restrict: 'EA',
+    replace:true,
+    scope: {
+      title: '@'
+    },
+    transclude:true,
+    templateUrl: 'templates/subnav.html',
+    link: function(scope, element, attrs) {
     }
   };
 });

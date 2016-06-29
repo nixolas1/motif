@@ -36,20 +36,17 @@
 
             <div id="add-tab">
 
-                <li><a class="dropdown-button" href data-activates="add-objects">Objects<i class="mdi-navigation-arrow-drop-down right"></i></a></li>
-                <ul id='add-objects' class='dropdown-content'>
+                <subnav title="Objects">
                     <li ng-repeat="object in objects">
                         <a href ng-click="addObject(object)" class="waves-effect waves-teal">{{object.name}}</a>
                     </li>
-                </ul>
+                </subnav>
 
-                <li><a class="dropdown-button" href data-activates="add-inputs">Inputs<i class="mdi-navigation-arrow-drop-down right"></i></a></li>
-                <ul id='add-inputs' class='dropdown-content'>
+                <subnav title="Inputs">
                     <li ng-repeat="input in inputs">
                         <a href ng-click="addInput(input)" class="waves-effect waves-teal">{{input.name}}</a>
                     </li>
-                </ul>
-
+                </subnav>
                 
             </div>
         </ul>
