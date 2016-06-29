@@ -3,42 +3,48 @@ app.controller('mainCtrl', function($scope, $element) {
     
     var audio, canvas;
 
-    var Number = function(minimum){
+    var NumberField = function(minimum){
         return {value: 0, min: minimum, live: 0}
     }
 
-    var Range = function(start, minimum, maximum){
+    var RangeField = function(start, minimum, maximum){
         return {value: start, min: minimum, max: maximum, step: 0.1, live: 0, type:"range"};
     }
 
-    var Color = function(hue, bright){
-        return {hue: {live:0, value: hue||0}, saturation: {live:0, value: 100}, brightness: {live:0, value: bright||100}, alpha: {live:0, value: 100}, min: 0, max: 100, step:0.1, type:"color"};
+    var ColorField = function(hue, bright){
+        return {
+            hue: new RangeField(0, 0, 100),
+            saturation: new RangeField(0, 0, 100),
+            brightness: new RangeField(0, 0, 100),
+            alpha: new RangeField(0, 0, 100),
+        }
     }
 
     function toArgs(p, type, sketch){
-        //[color.hue.value+color.hue.live, prop.color.saturation, prop.color.brightness, prop.color.alpha]
-        //posMap(prop.x.value + prop.x.live, p5.width), posMap(prop.y.value, p5.height), sizeMap(prop.width.value, p5.width), sizeMap(prop.height.value, p5.width)
         switch(type){
             case "color":
-                p = p.color;
                 return [p.hue.value+p.hue.live, p.saturation.value+p.saturation.live, p.brightness.value+p.brightness.live, p.alpha.value+p.alpha.live];
             
             case "xywh":
-                return [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value +  + p.x.live, sketch.width)];
+               // console.log(p, [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value + p.height.live, sketch.width)])
+                return [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value + p.height.live, sketch.width)];
 
         }
         
     }
 
+    function remap(n, start1, stop1, start2, stop2) {
+      return ((n-start1)/(stop1-start1))*(stop2-start2)+start2;
+    };
 
-    $scope.exposedProps = function(type){
-        switch(type){
-            case "color":
-                return ["hue", "saturation", "brightness", "alpha"];
-            default:
-                return ["value"];
-        }
+    function sizeMap(input, biggest){
+        return remap(input, 0, 100, 0, biggest);
     }
+
+    function posMap(input, biggest){
+        return remap(input, -100, 100, 0, biggest);
+    }
+
 
     //add html input field type here, else it will be a number field
     $scope.htmlType = function(type){
@@ -62,16 +68,23 @@ app.controller('mainCtrl', function($scope, $element) {
         objects: [],
         inputs: [],
 
+        play: function(p5js){
+            this.clearLive()
+            this.update();
+            this.draw(p5js);
+        },
+
+
         update: function(p5js){
             var inputs = this.inputs;
             for (var i = 0, inLen = inputs.length; i < inLen; i++) {
 
                 var input = inputs[i];
                     aff = input.affected;
-                    val = input.value;
+                    val = input.value();
 
                 for(var j = 0, affLen = aff.length; j < affLen; j++){
-                    affected[j].live += val * affected[j].modifier;
+                    aff[j].prop.live += val * aff[j].modifier;
                 }
 
             };
@@ -81,6 +94,16 @@ app.controller('mainCtrl', function($scope, $element) {
             var len = this.objects.length - 1;
             for (var i = 0; i <= len; i++) {
                 this.objects[i].draw(p5js);
+            };
+        },
+
+        clearLive: function(p5js){
+            var inputs = this.inputs;
+            for (var i = 0, inLen = inputs.length; i < inLen; i++) {
+                var aff = inputs[i].affected;
+                for(var j = 0, affLen = aff.length; j < affLen; j++){
+                    aff[j].prop.live = 0;
+                }
             };
         },
     };
@@ -98,18 +121,21 @@ app.controller('mainCtrl', function($scope, $element) {
                     p5.stroke();
                     p5.strokeWeight(prop.stroke.value);
                 }
-
+                //console.log(toArgs(prop, "color"))
                 p5.fill.apply(p5, toArgs(prop, "color"));
                 p5.ellipse.apply(p5, toArgs(prop, "xywh", p5));
             },
 
             props: {
-                x: new Range(0, -100, 100),
-                y: new Range(0, -100, 100),
-                height: new Range(20, 0, 200),
-                width: new Range(20, 0, 200),
-                color: new Color(0, 0),
-                stroke: new Number(0),
+                x: new RangeField(0, -100, 100),
+                y: new RangeField(0, -100, 100),
+                height: new RangeField(20, 0, 200),
+                width: new RangeField(20, 0, 200),
+                hue: new RangeField(0, 0, 360),
+                saturation: new RangeField(100, 0, 100),
+                brightness: new RangeField(0, 0, 100),
+                alpha: new RangeField(100, 0, 100),
+                stroke: new NumberField(0),
             },
         },
 
@@ -119,9 +145,7 @@ app.controller('mainCtrl', function($scope, $element) {
                 var p = this.props;
                 p5.background(toArgs(prop, "color"));
             },
-            props: {
-                color: new Color(),
-            },
+            props: new ColorField(),
 
         },
 
@@ -153,20 +177,21 @@ app.controller('mainCtrl', function($scope, $element) {
                 this.instance.setInput(audio);
             },
             value: function(p){
-                if(this.props.smoothing > 0)
-                    this.instance.smooth(this.props.smoothing);
+                var prop = this.props;
+                if(prop.smoothing > 0)
+                    this.instance.smooth(prop.smoothing);
 
-                if(this.props.normalize != this.live.normalizeToggle){
-                    this.instance.toggleNormalize(this.props.normalize);
-                    this.live.normalizeToggle = this.props.normalize;
+                if(prop.normalize.value != this.live.normalizeToggle){
+                    this.instance.toggleNormalize(prop.normalize.value);
+                    this.live.normalizeToggle = prop.normalize.value;
                 }
 
                 return this.instance.getLevel();
             },
             props: {
-                smoothing: new Range(0.5, 0, 1),
+                smoothing: new RangeField(0.4, 0.0, 1.0),
                 normalize: {value: true, type:"boolean"},
-                output: {min:0, max:1, type:"number"},
+                output: {min:0, max:1, type:"number", hidden:true},
             },
             live: {
                 normalizeToggle: false,
@@ -174,6 +199,7 @@ app.controller('mainCtrl', function($scope, $element) {
             instance: null,
             type: "number",
             affected: [],
+            effects: [],
         }
     }
 
@@ -209,18 +235,6 @@ app.controller('mainCtrl', function($scope, $element) {
         $scope.open = object;
     }
 
-    function sizeMap(input, biggest){
-        return $scope.sketch.map(input, 0, 100, 0, biggest);
-    }
-
-    function posMap(input, biggest){
-        return $scope.sketch.map(input, -100, 100, 0, biggest);
-    }
-
-    var colorToParameters = function(color){
-        return color.hue, color.saturation, color.brightness, color.alpha;
-    }
-
     var sketch = function(p){
         var parent;
 
@@ -240,14 +254,16 @@ app.controller('mainCtrl', function($scope, $element) {
             //init p5
             
             p.background(200,200,200);
-            p.colorMode(p.HSB, 100, 100, 100, 100);
+            p.colorMode(p.HSB, 360, 100, 100, 100);
             audio.play();
+
+            
 
 
         }
 
         p.draw = function () {
-            $scope.scene.draw(p);
+            $scope.scene.play(p);
         }
     }
 
@@ -256,13 +272,28 @@ app.controller('mainCtrl', function($scope, $element) {
 
     //testing
     
+    $scope.test = function(){
+        $scope.addObject($scope.objects.clear);
+        var ellipse = $scope.addObject($scope.objects.ellipse);
 
-            $scope.addObject($scope.objects.clear);
-            var ellipse = $scope.addObject($scope.objects.ellipse);
+        var amp = $scope.addInput($scope.inputs.amplitude);
+        amp.affected.push({prop: ellipse.props.x, modifier:30});
+        amp.affected.push({prop: ellipse.props.brightness, modifier:100});
 
-            var amp = $scope.addInput($scope.inputs.amplitude);
-            amp.affected.push({obj:ellipse, prop:"height", modifier:10});
-    
+    }
+    $scope.test();
+
+
+}).directive('input', function() {
+  return {
+    restrict: 'E',
+    require: '?ngModel',
+    link: function(scope, element, attrs, ngModel) {
+      if ('type' in attrs && attrs.type.toLowerCase() === 'range') {
+        ngModel.$parsers.push(parseFloat);
+      }
+    }
+  };
 });
 
 

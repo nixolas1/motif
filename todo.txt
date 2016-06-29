@@ -1,7 +1,26 @@
 todo:
+
+1. graphical connect input to object
+1.5 prepare normalize and smooth for usage
+2. connect effect to input
+3. grapicalize it
+7. re-arrange and remove added stuff
+4. make more objects and inputs
+
+6. ???
+8. save/restore localstorage functionality
+10. optimize
+
+
+
+
+
+
+
+
 ok1. add object to scene by clicking
 ok2. sync with options
-3. inputs
+ok3. inputs
 
 
             /*p.clear();

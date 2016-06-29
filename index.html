@@ -62,9 +62,19 @@
             <div id="objects-tab">
                 <li><h6>{{open.name}}</h6></li>
                 <li ng-repeat="(name, prop) in open.props">
-                    <div class="input-field range-field" ng-repeat="field in exposedProps(prop.type)">
-                        <input ng-required="true" placeholder="{{name}} {{field}}" id="{{$parent.$index+open.name+name+field}}" max="{{prop.max}}" min="{{prop.min}}" step="{{prop.step}}" type="{{htmlType(prop.type)}}" ng-model="prop[field]">
-                        <label for="{{$parent.$index+open.name+name+field}}">{{ field != 'value' ? field : name}}</label>
+                    <div class="input-field range-field">
+                        <input 
+                            ng-model="prop.value" 
+                            type="{{htmlType(prop.type)}}" 
+                            placeholder="{{name}} {{field}}" 
+                            id="{{$parent.$index+open.name+name+field}}" 
+                            max="{{prop.max}}" 
+                            min="{{prop.min}}" 
+                            step="{{prop.step}}" 
+                            ng-hide="prop.hidden"
+                            ng-required="!prop.hidden" 
+                        >
+                        <label ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{ name}}</label>
                     </div>
                 </li>
 
