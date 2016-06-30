@@ -21,7 +21,7 @@
         <meta content="utf-8" http-equiv="encoding">
     </head>
 
-    <body ng-app="motif" ng-controller="mainCtrl">
+    <body ng-app="motif" ng-controller="mainCtrl" ng-init="init()">
         <!--<nav class="blue-grey lighten-4" role="navigation">
             <div class="nav-wrapper container">
                 <a id="logo-container" href="#" class="brand-logo">Motif</a>
@@ -57,28 +57,47 @@
             </ul>
 
             <div id="objects-tab">
-                <li><h6>{{open.name}}</h6></li>
-                <li ng-repeat="(name, prop) in open.props">
-                    <div class="input-field range-field">
-                        <input 
-                            ng-model="prop.value" 
-                            type="{{htmlType(prop.type)}}" 
-                            placeholder="{{name}} {{field}}" 
-                            id="{{$parent.$index+open.name+name+field}}" 
-                            max="{{prop.max}}" 
-                            min="{{prop.min}}" 
-                            step="{{prop.step}}" 
-                            ng-hide="prop.hidden"
-                            ng-required="!prop.hidden" 
-                        >
-                        <label ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{ name}}</label>
-                    </div>
-                </li>
+                <li><h5>{{open.name}}</h5></li>
+
+                 <subnav title="Properties" ng-if="open.props">
+                    <li ng-repeat="(name, prop) in open.props">
+                        <div class="input-field range-field listpadd">
+                            <input 
+                                ng-model="prop.value" 
+                                type="{{htmlType(prop.type)}}" 
+                                placeholder="{{name}} {{field}}" 
+                                id="{{$parent.$index+open.name+name+field}}" 
+                                max="{{prop.max}}" 
+                                min="{{prop.min}}" 
+                                step="{{prop.step}}" 
+                                ng-hide="prop.hidden"
+                                ng-required="!prop.hidden" 
+                            >
+                            <label ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{name}}</label>
+                        </div>
+                        
+                    </li>
+                </subnav>
+
+
+                <subnav title="Connections">
+                    <li class="list-action light-green accent-4 waves-effect waves-light">
+                        <a class="btn-block btn-outline text-white modal-trigger" href="#add-connection">
+                            <i class="material-icons">add</i> Add new
+                        </a>
+                    </li>
+                    <subnav title="{{aff.name}}" ng-repeat="(name, aff) in open.affected">
+                        <div class="listpadd input-field">
+                            <label>Multiplier</label>
+                            <input type="number" ng-model="aff.modifier" />
+                        </div>
+                    </subnav>
+                </subnav>
 
             </div>
         </ul>
 
-        <main >
+        <main>
             <div id="canvas-container" height="0px"></div>
 
             <footer class="footer">
@@ -98,6 +117,16 @@
                 </div>
             </footer>
         </main>
+
+        <div id="add-connection" class="modal">
+            <div class="modal-content">
+                <h4>New {{open.name}} connection</h4>
+                <p>A bunch of text</p>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
+            </div>
+        </div>
 
         
 

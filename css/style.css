@@ -18,12 +18,25 @@ body{
     background-color: #ccc;
 
 }
+
+i.material-icons {
+  vertical-align: middle;
+}
+
 .thin{
     font-weight: 300;
 }
 
 .side-nav {
     box-shadow: none;
+}
+
+.listpadd{
+  padding: 0 10px;
+}
+
+.list-action {
+  display: block;
 }
 
 .side-nav.right{

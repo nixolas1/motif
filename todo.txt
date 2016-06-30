@@ -79,3 +79,13 @@ ok3. inputs
 for effect in effects:
     for affect in effeect.affected:
         affect += output;
+
+
+        <div class="input-field col s12" >
+          <select multiple ng-model="open.affected">
+            <optgroup label="{{object.name+' '+$index}}" ng-repeat="object in scene.objects">
+              <option value="{{prop}}" ng-repeat="(name, prop) in object.props">{{name}}</option>
+            </optgroup>
+          </select>
+          <label>Connections</label>
+        </div>
