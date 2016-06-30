@@ -2,6 +2,10 @@ var app = angular.module('motif', []);
 app.controller('mainCtrl', function($scope, $element) {
     
     var audio, canvas;
+    $scope.con = {};
+    $scope.sketch = new p5(sketch, $element[0]);
+
+
 
     var NumberField = function(val, minimum){
         return {value: val, min: minimum, live: 0}
@@ -222,8 +226,8 @@ app.controller('mainCtrl', function($scope, $element) {
         return newInput;
     }
 
-    $scope.addConnection = function(input, output, property){
-        input.affected.push({out: output, prop: property, modifier: 1});
+    $scope.addConnection = function(input, output, property, name){
+        input.affected.push({out: output, prop: property, modifier: 1, name: name});
         return input.affected[input.affected.length -1];
     }
 
@@ -253,22 +257,36 @@ app.controller('mainCtrl', function($scope, $element) {
             canvas = p.createCanvas(parent.width(), parent.height());
             canvas.parent(parent.attr('id'));
 
+            canvas.mouseClicked(function() {
+                if (audio.isPlaying() ){
+                  audio.stop();
+                } else {
+                  audio.play();
+                }
+            });
+
             //init p5
             
             p.background(200,200,200);
             p.colorMode(p.HSB, 360, 100, 100, 100);
-            audio.play();
+            //audio.play();
             $('.collapsible').collapsible();
+            $('.modal-trigger').leanModal();
+            $('select').material_select();
 
-            console.log("Ready!")
+            console.log("Ready!");
 
         }
 
         p.draw = function () {
-            $scope.scene.play(p);
+            //$scope.scene.play(p);
+            if(audio.isPlaying()){
+                $scope.scene.clearLive()
+                $scope.scene.update();
+            }
+            $scope.scene.draw(p);
         }
     }
-    $scope.sketch = new p5(sketch, $element[0]);
 
 
 

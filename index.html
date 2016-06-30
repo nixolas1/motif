@@ -36,15 +36,46 @@
 
             <div id="add-tab">
 
-                <subnav title="Objects">
+                <subnav title="Object">
                     <li ng-repeat="object in objects">
                         <a href ng-click="addObject(object)" class="waves-effect waves-teal">{{object.name}}</a>
                     </li>
                 </subnav>
 
-                <subnav title="Inputs">
+                <subnav title="Input">
                     <li ng-repeat="input in inputs">
                         <a href ng-click="addInput(input)" class="waves-effect waves-teal">{{input.name}}</a>
+                    </li>
+                </subnav>
+                <!--input, output, property, name){-->
+                <subnav title="Connection">
+                    <li>
+                        <div class="input-field listpadd">
+                            <select multiple ng-options="pName group by object for (pName, prop) in flatten(scope.objects)" ng-model="con.prop">
+                                <optgroup label="eclipse">
+                                    <option value="1">x</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </li>
+                    <li class="center">
+                        <span class="grey-text">with</span>
+                    </li>
+
+                    <li>
+                        <div class="input-field listpadd">
+                            <select multiple>
+                                <optgroup label="eclipse">
+                                    <option value="1">x</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </li>
+
+                    <li class="list-action light-green accent-4 waves-effect waves-light">
+                        <a ng-click="addConnection(con.input, con.output, con.prop, con.obName+'.'+con.prName)"  class="btn-block btn-outline text-white" href>
+                            <i class="material-icons">add</i> Add
+                        </a>
                     </li>
                 </subnav>
                 
@@ -61,7 +92,7 @@
 
                  <subnav title="Properties" ng-if="open.props">
                     <li ng-repeat="(name, prop) in open.props">
-                        <div class="input-field range-field listpadd">
+                        <div class="input-field range-field listpadd col s12">
                             <input 
                                 ng-model="prop.value" 
                                 type="{{htmlType(prop.type)}}" 
@@ -81,13 +112,8 @@
 
 
                 <subnav title="Connections">
-                    <li class="list-action light-green accent-4 waves-effect waves-light">
-                        <a class="btn-block btn-outline text-white modal-trigger" href="#add-connection">
-                            <i class="material-icons">add</i> Add new
-                        </a>
-                    </li>
                     <subnav title="{{aff.name}}" ng-repeat="(name, aff) in open.affected">
-                        <div class="listpadd input-field">
+                        <div class="listpadd input-field col s12">
                             <label>Multiplier</label>
                             <input type="number" ng-model="aff.modifier" />
                         </div>
