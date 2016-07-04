@@ -1,9 +1,8 @@
 var app = angular.module('motif', []);
-app.controller('mainCtrl', function($scope, $element) {
-    
+app.controller('mainCtrl', function($scope, $element, $timeout) {
+
     var audio, canvas;
-    $scope.con = {};
-    $scope.sketch = new p5(sketch, $element[0]);
+    $scope.con = {input:{}, output:{}, obj:{}, prop:{}, prName:null};
 
 
 
@@ -28,13 +27,13 @@ app.controller('mainCtrl', function($scope, $element) {
         switch(type){
             case "color":
                 return [p.hue.value+p.hue.live, p.saturation.value+p.saturation.live, p.brightness.value+p.brightness.live, p.alpha.value+p.alpha.live];
-            
+
             case "xywh":
                // console.log(p, [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value + p.height.live, sketch.width)])
                 return [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value + p.height.live, sketch.width)];
 
         }
-        
+
     }
 
     function remap(n, start1, stop1, start2, stop2) {
@@ -62,7 +61,7 @@ app.controller('mainCtrl', function($scope, $element) {
 
             case "boolean":
                 return "checkbox";
-            
+
             default:
                 return "number";
         }
@@ -140,7 +139,7 @@ app.controller('mainCtrl', function($scope, $element) {
                 saturation: new RangeField(100, 0, 100),
                 brightness: new RangeField(50, 0, 100),
                 alpha: new RangeField(100, 0, 100),
-                stroke: new NumberField(100, 0),
+                stroke: new NumberField(0, 0),
             },
         },
 
@@ -150,8 +149,7 @@ app.controller('mainCtrl', function($scope, $element) {
                 var p = this.props;
                 p5.background(toArgs(p, "color"));
             },
-            props: new ColorField(),
-
+            props: new ColorField
         },
 
         clear: {
@@ -187,10 +185,10 @@ app.controller('mainCtrl', function($scope, $element) {
                 },
             },
             outProps: {
-                level: {min:0, max:1, type:"number", hidden:true},
+                level: {min:0, max:1, type:"number"},
             },
             props: {
-                
+
             },
             live: {
                 normalizeToggle: false,
@@ -201,12 +199,44 @@ app.controller('mainCtrl', function($scope, $element) {
         }
     }
 
+    $scope.effects = {
+      normalize: {
+        update: function(input){
+          var output = this.instance.normalize(input);
+          return output;
+        },
+        add: function(p){
+          //{dynamic: true, damping: 1000, overflow: false, dampingMultiplier: 10, smoothness:10}
+          this.instance = new p5.Normalizer(this.props)
+        },
+        props: {
+          /*dynamic: this.instance.dynamic,
+          damping: this.instance.damping,
+          dampingMultiplier: this.instance.dampingMultiplier,
+          multiplier: this.instance.multiplier,
+          overflow: this.instance.overflow,
+          smoothness: this.instance.smoothness,
+          debug: this.instance.debug,
+          isArray: this.instance.isArray,*/
+        },
+        set: function(options){
+          this.props = angular.extend(this.props, options);
+        },
+        instance: null,
+      }
+    }
 
-    $scope.addObject = function(object){
+
+    $scope.addObject = function(object, props){
         var newObject = angular.copy(object);
+        if(props)
+          angular.extend(newObject.props, props);
+
         if(newObject.add)
             newObject.instance = newObject.add(newObject.props);
         $scope.scene.objects.push(newObject);
+
+        $scope.slowUpdate("select");
         $scope.selected(newObject);
         newObject.type = "object";
 
@@ -221,22 +251,67 @@ app.controller('mainCtrl', function($scope, $element) {
         newInput.type = "input";
 
         $scope.scene.inputs.push(newInput);
+        $scope.slowUpdate("select");
         $scope.selected(newInput);
 
         return newInput;
     }
 
-    $scope.addConnection = function(input, output, property, name){
-        input.affected.push({out: output, prop: property, modifier: 1, name: name});
+
+    $scope.addEffect = function(affected, effect, props){
+        var newEffect = angular.copy(effect);
+        if(props)
+          angular.extend(newEffect.props, props);
+
+        if(newEffect.add)
+            newEffect.add(newEffect.props);
+
+        if(!affected.effects)
+            affected.effects = [];
+
+        affected.effects.push(newEffect);
+
+        newEffect.type = "effect";
+        $scope.slowUpdate("collapsible");
+
+        return newEffect;
+    }
+
+    $scope.addConnection = function(input, output, property, givenName, modifier){
+        var mod = modifier || 1;
+        var name = givenName || "unnamed";
+        input.affected.push({out: output, prop: property, modifier: mod, name: name});
+        $scope.slowUpdate("collapsible");
+
         return input.affected[input.affected.length -1];
     }
 
     $scope.selected = function(object){
         $scope.open = object;
-        $('select').material_select();
-        $('.collapsible').collapsible();
+        $scope.slowUpdate("collapsible");
     }
 
+    $scope.clickSel = function(id){
+        $scope.slowUpdate("select");
+    };
+
+    $scope.slowUpdate = function(type, selector, func){
+      $timeout(function (){
+        switch (type) {
+          case "select":
+            $('select').material_select();
+            break;
+
+          case "collapsible":
+            $('.collapsible').collapsible();
+            break;
+
+          default:
+            $(selector).call(func);
+            break;
+        }
+      }, 0);
+    }
 
 
 
@@ -248,7 +323,7 @@ app.controller('mainCtrl', function($scope, $element) {
             $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
             var song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)];
             var AUDIO_FILE = "songs/"+song;
-            
+
             audio = p.loadSound(AUDIO_FILE);
             parent = $("#canvas-container");
         }
@@ -266,13 +341,13 @@ app.controller('mainCtrl', function($scope, $element) {
             });
 
             //init p5
-            
+
+            $scope.slowUpdate("collapsible");
+            $scope.slowUpdate("select");
+
             p.background(200,200,200);
             p.colorMode(p.HSB, 360, 100, 100, 100);
             //audio.play();
-            $('.collapsible').collapsible();
-            $('.modal-trigger').leanModal();
-            $('select').material_select();
 
             console.log("Ready!");
 
@@ -289,17 +364,19 @@ app.controller('mainCtrl', function($scope, $element) {
     }
 
 
+    $scope.sketch = new p5(sketch, $element[0]);
 
-    
+
     $scope.init = function(){
+
+
         $scope.addObject($scope.objects.clear);
-        var ellipse = $scope.addObject($scope.objects.ellipse);
+        //var ellipse = $scope.addObject($scope.objects.ellipse);
 
         var amp = $scope.addInput($scope.inputs.amplitude);
-        amp.affected.push({out: amp.out.level, prop: ellipse.props.width, modifier:30, name: "ellipse.width"});
-        amp.affected.push({out: amp.out.level, prop: ellipse.props.height, modifier:30, name: "ellipse.height"});
-        amp.affected.push({out: amp.out.level, prop: ellipse.props.stroke, modifier:30, name: "ellipse.stroke"});
-        amp.affected.push({out: amp.out.level, prop: ellipse.props.brightness, modifier:100, name: "ellipse.brightness"});
+        var norm = $scope.addEffect(amp, $scope.effects.normalize);
+        //$scope.addConnection(amp, amp.out.level, ellipse.props.width, "ellipse.width", 30);
+        //$scope.addConnection(amp, amp.out.level, ellipse.props.height, "ellipse.height", 30);
     }
 
 })
@@ -334,6 +411,3 @@ app.controller('mainCtrl', function($scope, $element) {
     }
   };
 });
-
-
-

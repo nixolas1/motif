@@ -51,34 +51,32 @@
                 <subnav title="Connection">
                     <li>
                         <div class="input-field listpadd">
-                            <select multiple ng-options="pName group by object for (pName, prop) in flatten(scope.objects)" ng-model="con.prop">
-                                <optgroup label="eclipse">
-                                    <option value="1">x</option>
-                                </optgroup>
+                            <select ng-options="obj.name for obj in scene.objects" ng-model="con.obj" ng-change="clickSel()"></select>
+                        </div>
+                        <div class="input-field listpadd">
+                            <select ng-options="name for (name, props) in con.obj.props" ng-model="con.prop">
                             </select>
                         </div>
                     </li>
-                    <li class="center">
-                        <span class="grey-text">with</span>
-                    </li>
+
+                    <li class="center"><span class="grey-text">with</span></li>
 
                     <li>
                         <div class="input-field listpadd">
-                            <select multiple>
-                                <optgroup label="eclipse">
-                                    <option value="1">x</option>
-                                </optgroup>
-                            </select>
+                            <select ng-options="input.name for input in scene.inputs" ng-model="con.input" ng-change="clickSel()"></select>
+                        </div>
+                        <div class="input-field listpadd">
+                            <select ng-options="name for (name, out) in con.input.out" ng-model="con.output"></select>
                         </div>
                     </li>
 
                     <li class="list-action light-green accent-4 waves-effect waves-light">
-                        <a ng-click="addConnection(con.input, con.output, con.prop, con.obName+'.'+con.prName)"  class="btn-block btn-outline text-white" href>
-                            <i class="material-icons">add</i> Add
+                        <a ng-click="addConnection(con.input, con.output, con.prop, con.obj.name+'.'+con.prName)"  class="btn-block btn-outline text-white" href>
+                            <i class="material-icons">add</i> Add {{con.prName}}
                         </a>
                     </li>
                 </subnav>
-                
+
             </div>
         </ul>
 
@@ -93,20 +91,20 @@
                  <subnav title="Properties" ng-if="open.props">
                     <li ng-repeat="(name, prop) in open.props">
                         <div class="input-field range-field listpadd col s12">
-                            <input 
-                                ng-model="prop.value" 
-                                type="{{htmlType(prop.type)}}" 
-                                placeholder="{{name}} {{field}}" 
-                                id="{{$parent.$index+open.name+name+field}}" 
-                                max="{{prop.max}}" 
-                                min="{{prop.min}}" 
-                                step="{{prop.step}}" 
+                            <input
+                                ng-model="prop.value"
+                                type="{{htmlType(prop.type)}}"
+                                placeholder="{{name}} {{field}}"
+                                id="{{$parent.$index+open.name+name+field}}"
+                                max="{{prop.max}}"
+                                min="{{prop.min}}"
+                                step="{{prop.step}}"
                                 ng-hide="prop.hidden"
-                                ng-required="!prop.hidden" 
+                                ng-required="!prop.hidden"
                             >
-                            <label ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{name}}</label>
+                            <label class="active" ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{name}}</label>
                         </div>
-                        
+
                     </li>
                 </subnav>
 
@@ -114,7 +112,7 @@
                 <subnav title="Connections">
                     <subnav title="{{aff.name}}" ng-repeat="(name, aff) in open.affected">
                         <div class="listpadd input-field col s12">
-                            <label>Multiplier</label>
+                            <label class="active">Multiplier</label>
                             <input type="number" ng-model="aff.modifier" />
                         </div>
                     </subnav>
@@ -154,8 +152,7 @@
             </div>
         </div>
 
-        
+
 
     </body>
 </html>
-    

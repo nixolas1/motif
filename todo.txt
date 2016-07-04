@@ -1,6 +1,6 @@
 todo:
 
-1. graphical connect input to object
+ok 1. graphical connect input to object
 1.5 prepare normalize and smooth for usage
 2. connect effect to input
 3. grapicalize it
@@ -62,7 +62,7 @@ ok3. inputs
             return null;
         },
         draw: function(p5){
-            
+
         },
         instance: null,
         props: {
@@ -89,3 +89,16 @@ for effect in effects:
           </select>
           <label>Connections</label>
         </div>
+
+
+        <subnav title="inName" ng-repeat="(inName, input) in scene.inputs">
+                       <subnav title="obName" ng-repeat="(obName, object) in scene.objects">
+                            <a href
+                                ng-repeat="(prName, prop) in object.props"
+                                ng-click="addConnection(input, output, prop, obName+'.'+prop)"
+                                class="waves-effect waves-teal">
+                                {{prName}}
+                            </a>
+                            dropdown instead!
+                       </subnav>
+                    </subnav>
