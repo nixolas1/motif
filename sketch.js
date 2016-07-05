@@ -1,8 +1,10 @@
 var app = angular.module('motif', []);
 app.controller('mainCtrl', function($scope, $element, $timeout) {
-
     var audio, canvas;
+    var localTag = "motifs";
     $scope.con = {input:{}, output:{}, obj:{}, prop:{}, prName:null};
+    $scope.saved = JSON.parse(localStorage.getItem(localTag));
+    $scope.curSave = {name: ""};
 
 
 
@@ -49,6 +51,19 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
     }
 
 
+    $scope.init = function(){
+
+        $scope.sketch = new p5(sketch, $element[0]);
+
+        //add default stuff if empty
+        if($scope.scene.objects.length == 0){
+            $scope.addObject($scope.objects.clear);
+
+            var amp = $scope.addInput($scope.inputs.amplitude);
+            $scope.addEffect(amp, $scope.effects.normalize);
+        }
+    }
+
     //add html input field type here, else it will be a number field
     $scope.htmlType = function(type){
         switch(type){
@@ -86,7 +101,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
                     aff = input.affected;
 
                 for(var j = 0, affLen = aff.length; j < affLen; j++){
-                    var val = aff[j].out.apply(input); //OPTIMIZE IMPORTANT: cache value for each tick
+                    //var val = input.live[outName];
+                    //if(!val){
+                      var val = aff[j].out.apply(input);
+                      //out.cache = val;
+                    //}
+
                     aff[j].prop.live += val * aff[j].modifier;
                 }
 
@@ -295,6 +315,10 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
         $scope.slowUpdate("select");
     };
 
+    $scope.updateLocalStorage = function(){
+        localStorage.setItem(localTag, JSON.stringify($scope.saved));
+    }
+
     $scope.slowUpdate = function(type, selector, func){
       $timeout(function (){
         switch (type) {
@@ -311,18 +335,58 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
             break;
         }
       }, 0);
+    };
+
+    $scope.save = function(){
+        if(!$scope.saved){
+            $scope.saved = {};
+        }
+
+        $scope.curSave.scene = {objects: $scope.scene.objects, inputs: $scope.scene.inputs};
+        $scope.curSave.song = $scope.song;
+        $scope.saved[$scope.curSave.name] = angular.copy($scope.curSave);
+        $scope.updateLocalStorage();
+
+        $scope.slowUpdate("collapsible");
+    };
+
+    $scope.openSave = function(save){
+        $scope.curSave = save;
+        $scope.scene = angular.extend($scope.scene, save.scene);
+        $scope.song = save.song;
+
+        $scope.restart();
+
+    }
+
+    $scope.deleteSave = function(save){
+        delete $scope.saved[save.name];
+        $scope.updateLocalStorage();
     }
 
 
+    $scope.selectSong = function(song){
+        $scope.song = song;
 
+        $scope.restart();
+    }
+
+    $scope.restart = function(){
+        audio.stop();
+        $scope.sketch.remove();
+        $scope.init();
+    }
 
     var sketch = function(p){
         var parent;
 
         p.preload = function(){
             $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
-            var song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)];
-            var AUDIO_FILE = "songs/"+song;
+            
+            if(!$scope.song)
+                $scope.song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)];
+
+            var AUDIO_FILE = "songs/"+$scope.song;
 
             audio = p.loadSound(AUDIO_FILE);
             parent = $("#canvas-container");
@@ -331,6 +395,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
         p.setup = function () {
             canvas = p.createCanvas(parent.width(), parent.height());
             canvas.parent(parent.attr('id'));
+
+            audio.play();
 
             canvas.mouseClicked(function() {
                 if (audio.isPlaying() ){
@@ -364,20 +430,6 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
     }
 
 
-    $scope.sketch = new p5(sketch, $element[0]);
-
-
-    $scope.init = function(){
-
-
-        $scope.addObject($scope.objects.clear);
-        //var ellipse = $scope.addObject($scope.objects.ellipse);
-
-        var amp = $scope.addInput($scope.inputs.amplitude);
-        var norm = $scope.addEffect(amp, $scope.effects.normalize);
-        //$scope.addConnection(amp, amp.out.level, ellipse.props.width, "ellipse.width", 30);
-        //$scope.addConnection(amp, amp.out.level, ellipse.props.height, "ellipse.height", 30);
-    }
 
 })
 

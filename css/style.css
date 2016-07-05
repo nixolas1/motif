@@ -24,6 +24,11 @@ body{
   display: flex;
 }
 
+.small-btn {
+  padding: 0px 30px !important;
+  margin: 15px 0 !important;
+}
+
 i.material-icons {
   vertical-align: middle;
 }
