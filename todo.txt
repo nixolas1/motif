@@ -3,8 +3,8 @@ todo:
 ok 1. graphical connect input to object
 1.5 prepare normalize and smooth for usage
 2. connect effect to input
-3. grapicalize it
-7. re-arrange and remove added stuff
+3. frontend it
+ok 7. re-arrange and remove added stuff
 4. make more objects and inputs
 
 6. ???

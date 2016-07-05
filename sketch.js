@@ -1,11 +1,11 @@
 var app = angular.module('motif', []);
-app.controller('mainCtrl', function($scope, $element, $timeout) {
+app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     var audio, canvas;
     var localTag = "motifs";
     $scope.con = {input:{}, output:{}, obj:{}, prop:{}, prName:null};
     $scope.saved = JSON.parse(localStorage.getItem(localTag));
     $scope.curSave = {name: ""};
-
+    $scope.offsets = [{dir:-1, name:"up", icon:"arrow_upward"}, {dir:1, name:"down", icon:"arrow_downward"}]
 
 
     var NumberField = function(val, minimum){
@@ -30,9 +30,9 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
             case "color":
                 return [p.hue.value+p.hue.live, p.saturation.value+p.saturation.live, p.brightness.value+p.brightness.live, p.alpha.value+p.alpha.live];
 
-            case "xywh":
+            case "xywhs":
                // console.log(p, [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value + p.height.live, sketch.width)])
-                return [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value + p.height.live, sketch.width)];
+                return [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live + p.size.value + p.size.live, sketch.width), sizeMap(p.height.value + p.height.live + p.size.value + p.size.live, sketch.width)];
 
         }
 
@@ -103,7 +103,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
                 for(var j = 0, affLen = aff.length; j < affLen; j++){
                     //var val = input.live[outName];
                     //if(!val){
-                      var val = aff[j].out.apply(input);
+                        var val = aff[j].out.apply(input);
+                        for(var k = 0; effLen = )
                       //out.cache = val;
                     //}
 
@@ -146,15 +147,49 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
                     p5.strokeWeight(prop.stroke.value + prop.stroke.live);
                 }
                 p5.fill.apply(p5, toArgs(prop, "color"));
-                p5.ellipse.apply(p5, toArgs(prop, "xywh", p5));
+                p5.ellipse.apply(p5, toArgs(prop, "xywhs", p5));
             },
 
             //STRUCTURE: make xywh new Physical, join with toProps(new Physical, new Color)
             props: {
                 x: new RangeField(0, -100, 100),
                 y: new RangeField(0, -100, 100),
-                height: new RangeField(20, 0, 200),
-                width: new RangeField(20, 0, 200),
+                height: new RangeField(0, 0, 200),
+                width: new RangeField(0, 0, 200),
+                size: new RangeField(20, 0, 200),
+                hue: new RangeField(0, 0, 360),
+                saturation: new RangeField(100, 0, 100),
+                brightness: new RangeField(50, 0, 100),
+                alpha: new RangeField(100, 0, 100),
+                stroke: new NumberField(0, 0),
+            },
+        },
+
+        rect: {
+            name: "rect",
+            draw: function(p5){
+                var prop = this.props;
+                if(!prop.stroke.value){
+                    p5.noStroke();
+                } else {
+                    p5.stroke(0);
+                    p5.strokeWeight(prop.stroke.value + prop.stroke.live);
+                }
+                p5.fill.apply(p5, toArgs(prop, "color"));
+
+                var args = toArgs(prop, "xywhs", p5);
+                //args.push(prop.roundness);
+                p5.rect.apply(p5, args);
+            },
+
+            //STRUCTURE: make xywh new Physical, join with toProps(new Physical, new Color)
+            props: {
+                x: new RangeField(0, -100, 100),
+                y: new RangeField(0, -100, 100),
+                height: new RangeField(0, 0, 200),
+                width: new RangeField(0, 0, 200),
+                size: new RangeField(20, 0, 200),
+                roundness: new NumberField(0, 0),
                 hue: new RangeField(0, 0, 360),
                 saturation: new RangeField(100, 0, 100),
                 brightness: new RangeField(50, 0, 100),
@@ -215,7 +250,6 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
             },
             instance: null,
             affected: [],
-            effects: [],
         }
     }
 
@@ -243,6 +277,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
           this.props = angular.extend(this.props, options);
         },
         instance: null,
+        affected: [] TODO: [{type:input, affected: amp.volume-> amp.live.volume}]
       }
     }
 
@@ -256,10 +291,11 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
             newObject.instance = newObject.add(newObject.props);
         $scope.scene.objects.push(newObject);
 
-        $scope.slowUpdate("select");
-        $scope.selected(newObject);
+        newObject.name = newObject.name + $scope.scene.objects.length;
         newObject.type = "object";
 
+        $scope.slowUpdate("select");
+        $scope.selected(newObject);
         return newObject;
     }
 
@@ -269,6 +305,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
             newInput.add($scope.sketch);
 
         newInput.type = "input";
+        newInput.name = newInput.name + $scope.scene.inputs.length;
 
         $scope.scene.inputs.push(newInput);
         $scope.slowUpdate("select");
@@ -364,6 +401,25 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
         $scope.updateLocalStorage();
     }
 
+    $scope.deleteIndex = function(index, array){
+        array.splice(index, 1);
+        $scope.slowUpdate("select");
+    }
+
+    $scope.moveIndex = function(index, offset, array){
+        if(index+offset >= 0 && index+offset < array.length){
+            console.log(index, offset)
+            var element = array[index];
+            array.splice(index, 1);
+            array.splice(index+offset, 0, element);
+
+            $scope.slowUpdate("select");
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 
     $scope.selectSong = function(song){
         $scope.song = song;
@@ -377,6 +433,18 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
         $scope.init();
     }
 
+
+    $scope.getText = function (id){
+        return $(id)[0].selectedOptions[0].label;
+    }
+
+
+
+
+
+
+
+
     var sketch = function(p){
         var parent;
 
@@ -386,17 +454,19 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
             if(!$scope.song)
                 $scope.song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)];
 
-            var AUDIO_FILE = "songs/"+$scope.song;
 
+             var AUDIO_FILE = "songs/"+$scope.song;
             audio = p.loadSound(AUDIO_FILE);
+           
+
+            
             parent = $("#canvas-container");
         }
 
         p.setup = function () {
             canvas = p.createCanvas(parent.width(), parent.height());
             canvas.parent(parent.attr('id'));
-
-            audio.play();
+            
 
             canvas.mouseClicked(function() {
                 if (audio.isPlaying() ){
@@ -455,7 +525,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout) {
     restrict: 'EA',
     replace:true,
     scope: {
-      title: '@'
+      title: '@',
     },
     transclude:true,
     templateUrl: 'templates/subnav.html',

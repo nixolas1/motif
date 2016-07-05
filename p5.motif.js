@@ -19,7 +19,6 @@ p5.Normalizer = function(options){
     if(this.damping < 1)
         this.damping = 1;
 
-    console.log("PLUGIN Normalizer loaded")
 }
 
 p5.Normalizer.prototype = {

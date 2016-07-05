@@ -28,6 +28,9 @@ body{
   padding: 0px 30px !important;
   margin: 15px 0 !important;
 }
+.dropdown-content li.active > span {
+    color: white !important;
+}
 
 i.material-icons {
   vertical-align: middle;

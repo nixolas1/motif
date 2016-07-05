@@ -54,7 +54,7 @@
                             <select ng-options="obj.name for obj in scene.objects" ng-model="con.obj" ng-change="clickSel()"></select>
                         </div>
                         <div class="input-field listpadd">
-                            <select ng-options="name for (name, props) in con.obj.props" ng-model="con.prop">
+                            <select id="obj-prop-con" ng-options="name for (name, props) in con.obj.props" ng-model="con.prop">
                             </select>
                         </div>
                     </li>
@@ -71,13 +71,13 @@
                     </li>
 
                     <li class="list-action light-green accent-4 waves-effect waves-light">
-                        <a ng-click="addConnection(con.input, con.output, con.prop, con.obj.name+'.'+con.prName)"  class="btn-block btn-outline text-white" href>
+                        <a ng-click="addConnection(con.input, con.output, con.prop, con.obj.name+'.'+getText('#obj-prop-con'))"  class="btn-block btn-outline text-white" href>
                             <i class="material-icons">add</i> Add {{con.prName}}
                         </a>
                     </li>
                 </subnav>
 
-                <subnav title="Saves">
+                <subnav title="Saves" amount="saved">
                     <li class="list-action">
                         <div class="row">
                             <div class="input-field col s7">
@@ -110,7 +110,7 @@
 
             </div>
         </ul>
-
+        <!--<audio src="songs/pizza.mp3" autoplay="true"></audio>-->
         <ul id="nav-mobile" class="side-nav right fixed">
             <ul class="tabs">
                 <li class="tab col s3"><a href="#objects-tab">Edit</a></li>
@@ -158,31 +158,21 @@
             <footer class="footer">
                 <div class="container">
                     <div class="row">
-                        <div class="col s6">
+                        <div class="col s6" ng-repeat="array in [scene.objects, scene.inputs]">
                             <div class="collection">
-                                <a ng-repeat="object in scene.objects" ng-click="selected(object)" href="#" class="collection-item">{{object.name}}</a>
-                            </div>
-                        </div>
-                        <div class="col s6">
-                            <div class="collection">
-                                <a ng-repeat="input in scene.inputs" ng-click="selected(input)" href="#" class="collection-item">{{input.name}}</a>
+                                <a ng-repeat="element in array" ng-click="selected(element)" href="#" class="collection-item">
+                                    {{element.name}}
+                                    <span href="#" ng-click="deleteIndex($index, array)" title="Delete" class="right waves-effect waves-red"><i class="material-icons">delete</i></span>
+
+                                    <span ng-repeat="offset in offsets" href="#" ng-click="moveIndex($parent.$index, offset.dir, array)" title="Move {{offset.name}}" class="right"><i class="material-icons">{{offset.icon}}</i></span>
+
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </footer>
         </main>
-
-        <div id="add-connection" class="modal">
-            <div class="modal-content">
-                <h4>New {{open.name}} connection</h4>
-                <p>A bunch of text</p>
-            </div>
-            <div class="modal-footer">
-                <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat">Agree</a>
-            </div>
-        </div>
-
 
 
     </body>
