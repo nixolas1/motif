@@ -1,15 +1,16 @@
 todo:
 
 ok 1. graphical connect input to object
-1.5 prepare normalize and smooth for usage
-2. connect effect to input
-3. frontend it
+ok 1.5 prepare normalize and smooth for usage
+ok 2. connect effect to input
 ok 7. re-arrange and remove added stuff
-4. make more objects and inputs
+ish 3. frontend change effect props
+6. add remove button to right sidebar elements
+ish 4. make more objects and inputs
 
-6. ???
 8. save/restore localstorage functionality
 10. optimize
+11. add time editing to footer
 
 
 

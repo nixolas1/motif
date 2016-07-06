@@ -3,15 +3,22 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     var audio, canvas;
     var localTag = "motifs";
     $scope.con = {input:{}, output:{}, obj:{}, prop:{}, prName:null};
+    $scope.eff = {input:{}, output:{}, eff:{}};
     $scope.saved = JSON.parse(localStorage.getItem(localTag));
     $scope.curSave = {name: ""};
-    $scope.offsets = [{dir:-1, name:"up", icon:"arrow_upward"}, {dir:1, name:"down", icon:"arrow_downward"}]
+    $scope.offsets = [{dir:1, name:"down", icon:"arrow_downward"}, {dir:-1, name:"up", icon:"arrow_upward"}]
 
 
+    //Creates a dict for number inputs
     var NumberField = function(val, minimum){
         return {value: val, min: minimum, live: 0}
     }
 
+    var BooleanField = function(val, minimum){
+        return {value: val, type: "boolean", live: val}
+    }
+
+    //Creates a dict for range inputs
     var RangeField = function(start, minimum, maximum){
         return {value: start, min: minimum, max: maximum, step: 0.1, live: 0, type:"range"};
     }
@@ -25,6 +32,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         }
     }
 
+    //Returns a list of calculated parameters of given type
     function toArgs(p, type, sketch){
         switch(type){
             case "color":
@@ -38,10 +46,26 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     }
 
+    //Applies defined effects to an output and caches it
+    function processOutput(out, input){
+        var processed = out.update.apply(input);
+        var effs = out.effects;
+        var effLen = effs.length;
+
+        for (var i = 0; i < effLen; i++) {
+            processed = effs[i].update(processed);
+        };
+
+        out.live = processed;
+        return processed;
+    }
+
+    //maps a value n with range between start1 and stop1 to a range between start2 and stop2
     function remap(n, start1, stop1, start2, stop2) {
       return ((n-start1)/(stop1-start1))*(stop2-start2)+start2;
     };
 
+    //helper function for mapping canvas objects' size to canvas size, so they are displayed with same size on different monitors
     function sizeMap(input, biggest){
         return remap(input, 0, 100, 0, biggest);
     }
@@ -51,16 +75,18 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     }
 
 
+    //called when angular is ready to start controller
     $scope.init = function(){
 
         $scope.sketch = new p5(sketch, $element[0]);
 
         //add default stuff if empty
         if($scope.scene.objects.length == 0){
-            $scope.addObject($scope.objects.clear);
-
+            $scope.addObject($scope.objects.background, {saturation: 0, brightness: 50});
+            var ellipse = $scope.addObject($scope.objects.ellipse);
             var amp = $scope.addInput($scope.inputs.amplitude);
-            $scope.addEffect(amp, $scope.effects.normalize);
+            //var conn = $scope.addConnection(amp, amp.out.level, ellipse.props.y, "ell.init.y", 100)
+            $scope.addEffect(amp.out.level, $scope.effects.normalize, {smoothness: 5});
         }
     }
 
@@ -82,38 +108,40 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         }
     }
 
+    //main drawer object with all added objects, inputs and connections stored
     $scope.scene = {
         objects: [],
         inputs: [],
 
+        //helper function for running a normal tick
         play: function(p5js){
             this.clearLive()
             this.update();
             this.draw(p5js);
         },
 
-
+        //main function for updating input values and object properties
         update: function(p5js){
             var inputs = this.inputs;
             for (var i = 0, inLen = inputs.length; i < inLen; i++) {
 
                 var input = inputs[i];
-                    aff = input.affected;
+                    affectList = input.affected;
 
-                for(var j = 0, affLen = aff.length; j < affLen; j++){
-                    //var val = input.live[outName];
-                    //if(!val){
-                        var val = aff[j].out.apply(input);
-                        for(var k = 0; effLen = )
-                      //out.cache = val;
-                    //}
+                for(var j = 0, affectListLen = affectList.length; j < affectListLen; j++){
+                    var affected = affectList[j];
+                    var val = affected.out.live;
 
-                    aff[j].prop.live += val * aff[j].modifier;
+                    if(val == null){
+                        val = processOutput(affected.out, input);
+                    }
+
+                    affected.prop.live += val * affected.modifier;
                 }
-
             };
         },
 
+        //actually draw the object on canvas
         draw: function(p5js){
             var len = this.objects.length - 1;
             for (var i = 0; i <= len; i++) {
@@ -122,19 +150,22 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         },
 
         //OPTIMIZE: clear live while in update function
+        //clears the live values from objects and inputs to prepare for a new tick
         clearLive: function(p5js){
             var inputs = this.inputs;
-            for (var i = 0, inLen = inputs.length; i < inLen; i++) {
+
+            for (var i = inputs.length - 1; i >= 0; i--) {
                 var aff = inputs[i].affected;
-                for(var j = 0, affLen = aff.length; j < affLen; j++){
+                for (var j = aff.length - 1; j >= 0; j--) {
                     aff[j].prop.live = 0;
-                }
+                    aff[j].out.live = null;
+                };
             };
         },
     };
 
 
-
+    //definitions of drawable objects
     $scope.objects = {
         ellipse: {
             name: "ellipse",
@@ -226,7 +257,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     };
 
 
-
+    //definitions of data inputs
     $scope.inputs = {
         amplitude: {
             name: "amplitude",
@@ -235,9 +266,13 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                 this.instance.setInput(audio);
             },
             out: {
-                level: function(p){
-                    return this.instance.getLevel();
-                },
+                level: {
+                    update: function(p){
+                        return this.instance.getLevel();
+                    },
+                    effects: [],
+                    live: null,
+                }
             },
             outProps: {
                 level: {min:0, max:1, type:"number"},
@@ -253,8 +288,10 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         }
     }
 
+    //definitions of data effects that can be applied to inputs and objects
     $scope.effects = {
       normalize: {
+        name: "normalize",
         update: function(input){
           var output = this.instance.normalize(input);
           return output;
@@ -264,28 +301,31 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
           this.instance = new p5.Normalizer(this.props)
         },
         props: {
-          /*dynamic: this.instance.dynamic,
-          damping: this.instance.damping,
-          dampingMultiplier: this.instance.dampingMultiplier,
-          multiplier: this.instance.multiplier,
-          overflow: this.instance.overflow,
-          smoothness: this.instance.smoothness,
-          debug: this.instance.debug,
-          isArray: this.instance.isArray,*/
+          smoothness: new NumberField(2, 0),
+          damping: new NumberField(1000, 0),
+          dampingMultiplier: new NumberField(10, 0),
+          multiplier: new NumberField(1, 0),
+          dynamic: new BooleanField(true),
+          overflow: new BooleanField(false),
+          isArray: new BooleanField(false),
+          debug: new BooleanField(false),
         },
         set: function(options){
           this.props = angular.extend(this.props, options);
         },
         instance: null,
-        affected: [] TODO: [{type:input, affected: amp.volume-> amp.live.volume}]
+        affected: [] 
+        //TODO: [{type:input, affected: amp.volume-> amp.live.volume}]
       }
     }
 
 
     $scope.addObject = function(object, props){
         var newObject = angular.copy(object);
-        if(props)
-          angular.extend(newObject.props, props);
+        
+        angular.forEach(props, function(value, name) {
+            newObject.props[name].value = value;
+        });
 
         if(newObject.add)
             newObject.instance = newObject.add(newObject.props);
@@ -408,7 +448,6 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     $scope.moveIndex = function(index, offset, array){
         if(index+offset >= 0 && index+offset < array.length){
-            console.log(index, offset)
             var element = array[index];
             array.splice(index, 1);
             array.splice(index+offset, 0, element);
@@ -496,6 +535,10 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                 $scope.scene.update();
             }
             $scope.scene.draw(p);
+        }
+
+        p.windowResized = function() {
+          p.resizeCanvas(parent.width(), parent.height());
         }
     }
 

@@ -47,7 +47,8 @@
                         <a href="#" ng-click="addInput(input)" class="waves-effect waves-teal">{{input.name}}</a>
                     </li>
                 </subnav>
-                <!--input, output, property, name){-->
+
+
                 <subnav title="Connection">
                     <li>
                         <div class="input-field listpadd">
@@ -73,6 +74,32 @@
                     <li class="list-action light-green accent-4 waves-effect waves-light">
                         <a ng-click="addConnection(con.input, con.output, con.prop, con.obj.name+'.'+getText('#obj-prop-con'))"  class="btn-block btn-outline text-white" href>
                             <i class="material-icons">add</i> Add {{con.prName}}
+                        </a>
+                    </li>
+                </subnav>
+
+
+                <subnav title="Effect">
+                    <li>
+                        <div class="input-field listpadd">
+                            <select ng-options="effect.name for effect in effects" ng-model="eff.eff" ng-change="clickSel()"></select>
+                        </div>
+                    </li>
+
+                    <li class="center"><span class="grey-text">applied to</span></li>
+
+                    <li>
+                        <div class="input-field listpadd">
+                            <select ng-options="input.name for input in scene.inputs" ng-model="eff.input" ng-change="clickSel()"></select>
+                        </div>
+                        <div class="input-field listpadd">
+                            <select ng-options="name for (name, out) in eff.input.out" ng-model="eff.output"></select>
+                        </div>
+                    </li>
+
+                    <li class="list-action light-green accent-4 waves-effect waves-light">
+                        <a ng-click="addEffect(eff.output, eff.eff)"  class="btn-block btn-outline text-white" href>
+                            <i class="material-icons">add</i> Add effect
                         </a>
                     </li>
                 </subnav>
@@ -140,12 +167,35 @@
                 </subnav>
 
 
-                <subnav title="Connections">
+                <subnav title="Connections" ng-if="open.affected">
                     <subnav title="{{aff.name}}" ng-repeat="(name, aff) in open.affected">
                         <div class="listpadd input-field col s12">
                             <label class="active">Multiplier</label>
                             <input type="number" ng-model="aff.modifier" />
                         </div>
+                    </subnav>
+                </subnav>
+
+                <subnav title="Effects" ng-if="open.out">
+                    <subnav title="{{name}}" ng-repeat="(name, out) in open.out" ng-if="out.effects">
+                        <subnav title="{{effect.name}}" ng-repeat="effect in out.effects">
+                            <li ng-repeat="(name, prop) in effect.props">
+                                <div class="input-field range-field listpadd col s12">
+                                    <input
+                                        ng-model="prop.value"
+                                        type="{{htmlType(prop.type)}}"
+                                        placeholder="{{name}} {{field}}"
+                                        id="{{$parent.$index+open.name+name+field}}"
+                                        max="{{prop.max}}"
+                                        min="{{prop.min}}"
+                                        step="{{prop.step}}"
+                                        ng-hide="prop.hidden"
+                                        ng-required="!prop.hidden"
+                                    >
+                                    <label class="active" ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{name}}</label>
+                                </div>
+                            </li>
+                        </subnav>
                     </subnav>
                 </subnav>
 

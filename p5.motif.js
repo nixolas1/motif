@@ -11,7 +11,7 @@ p5.Normalizer = function(options){
     this.isArray = options.isArray || false;
 
     this.array = [];
-    this.maximum = 0;
+    this.maximum = 1;
     this.minimum = 0;
     this.current = 0;
     this.previous = [];
@@ -19,10 +19,13 @@ p5.Normalizer = function(options){
     if(this.damping < 1)
         this.damping = 1;
 
+    console.log("added normalizer with", this)
+
 }
 
 p5.Normalizer.prototype = {
     normalize : function(value) {
+
 
         if(this.isArray){
             this.array = value;
