@@ -11,17 +11,17 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     //Creates a dict for number inputs
     var NumberField = function(val, minimum, func){
-        return {value: val, min: minimum, live: 0, func: func, real: 0, type:"number"}
+        return {value: val, min: minimum, live: 0, func: func, real: 0, type: "number", htmlType: "number"}
     }
 
     var BooleanField = function(val, minimum, func){
-        return {value: val, type: "boolean", live: val, func: func}
+        return {value: val, type: "boolean", live: val, func: func, htmlType: "checkbox"}
     }
 
     //Creates a dict for range inputs
     var RangeField = function(start, minimum, maximum, func, inStep){
         var step = inStep || 0.1;
-        return {value: start, min: minimum, max: maximum, step: step, live: 0, type:"range", func: func, real: 0};
+        return {value: start, min: minimum, max: maximum, step: step, live: 0, type:"number", htmlType: "range", func: func, real: 0};
     }
 
     var ColorField = function(hue, bright, func){
@@ -88,24 +88,6 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             var amp = $scope.addInput($scope.inputs.amplitude);
             //var conn = $scope.addConnection(amp, amp.out.level, ellipse.props.y, "ell.init.y", 100)
             $scope.addEffect(amp.out.level, $scope.effects.normalize, {smoothness: 5});
-        }
-    }
-
-    //add html input field type here, else it will be a number field
-    $scope.htmlType = function(type){
-        switch(type){
-            case "range":
-            case "text":
-                return type;
-
-            case "color":
-                return "range";
-
-            case "boolean":
-                return "checkbox";
-
-            default:
-                return "number";
         }
     }
 
@@ -359,7 +341,6 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         },
         instance: null,
         affected: [] 
-        //TODO: [{type:input, affected: amp.volume-> amp.live.volume}]
       }
     }
 
@@ -507,6 +488,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     $scope.deleteIndex = function(index, array){
         array.splice(index, 1);
         $scope.slowUpdate("select");
+        $scope.slowUpdate("collapsible");
     }
 
     $scope.moveIndex = function(index, offset, array){
@@ -538,6 +520,19 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     $scope.getText = function (id){
         return $(id)[0].selectedOptions[0].label;
+    }
+
+    $scope.filtered = function(toFilter, prop, value){
+        return toFilter; //Todo fix rest
+
+        var out = {};
+        angular.forEach(toFilter, function(item, key){
+            console.log(item, prop, key, value)
+            if(item[prop] === value){
+                out[key] = item;
+            }
+        });
+        return out;
     }
 
 

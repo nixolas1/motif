@@ -1,7 +1,10 @@
 <li class="no-padding">
     <ul class="collapsible collapsible-accordion">
         <li>
-            <a class="collapsible-header"> <span ng-bind="title"></span> <span class="badge" ng-bind="amount"></span></a>
+            <a class="collapsible-header"> 
+                <span ng-bind="title"></span> 
+                <span ng-if="del" class="right" ng-click="func"><i class="material-icons">delete</i></span>
+            </a>
             <div class="collapsible-body">
                 <ul ng-transclude>
                     

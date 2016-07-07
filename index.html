@@ -60,14 +60,14 @@
                         </div>
                     </li>
 
-                    <li class="center"><span class="grey-text">with</span></li>
+                    <li class="center"><span class="grey-text">connected to</span></li>
 
                     <li>
                         <div class="input-field listpadd">
                             <select ng-options="input.name for input in scene.inputs" ng-model="con.input" ng-change="clickSel()"></select>
                         </div>
                         <div class="input-field listpadd">
-                            <select ng-options="name for (name, out) in con.input.out" ng-model="con.output"></select>
+                            <select ng-options="name for (name, out) in filtered(con.input.out, 'type', con.prop.type)" ng-model="con.output"></select>
                         </div>
                     </li>
 
@@ -151,7 +151,7 @@
                         <div class="input-field range-field listpadd col s12">
                             <input
                                 ng-model="prop.value"
-                                type="{{htmlType(prop.type)}}"
+                                type="{{prop.htmlType}}"
                                 placeholder="{{name}} {{field}}"
                                 id="{{$parent.$index+open.name+name+field}}"
                                 max="{{prop.max}}"
@@ -169,7 +169,7 @@
 
 
                 <subnav title="Connections" ng-if="open.affected">
-                    <subnav title="{{aff.name}}" ng-repeat="(name, aff) in open.affected">
+                    <subnav title="{{aff.name}}" ng-repeat="(name, aff) in open.affected" func="deleteIndex($index, open.affected)">
                         <div class="listpadd input-field col s12">
                             <label class="active">Multiplier</label>
                             <input type="number" ng-model="aff.modifier" />
