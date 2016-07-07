@@ -157,8 +157,9 @@
                                 max="{{prop.max}}"
                                 min="{{prop.min}}"
                                 step="{{prop.step}}"
-                                ng-hide="prop.hidden"
+                                ng-if="!prop.hidden"
                                 ng-required="!prop.hidden"
+                                ng-change="prop.func(open, prop.value)"
                             >
                             <label class="active" ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{name}}</label>
                         </div>

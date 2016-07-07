@@ -10,25 +10,26 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
 
     //Creates a dict for number inputs
-    var NumberField = function(val, minimum){
-        return {value: val, min: minimum, live: 0}
+    var NumberField = function(val, minimum, func){
+        return {value: val, min: minimum, live: 0, func: func, real: 0, type:"number"}
     }
 
-    var BooleanField = function(val, minimum){
-        return {value: val, type: "boolean", live: val}
+    var BooleanField = function(val, minimum, func){
+        return {value: val, type: "boolean", live: val, func: func}
     }
 
     //Creates a dict for range inputs
-    var RangeField = function(start, minimum, maximum){
-        return {value: start, min: minimum, max: maximum, step: 0.1, live: 0, type:"range"};
+    var RangeField = function(start, minimum, maximum, func, inStep){
+        var step = inStep || 0.1;
+        return {value: start, min: minimum, max: maximum, step: step, live: 0, type:"range", func: func, real: 0};
     }
 
-    var ColorField = function(hue, bright){
+    var ColorField = function(hue, bright, func){
         return {
-            hue: new RangeField(0, 0, 100),
-            saturation: new RangeField(100, 0, 100),
-            brightness: new RangeField(100, 0, 100),
-            alpha: new RangeField(100, 0, 100),
+            hue: new RangeField(0, 0, 100, func),
+            saturation: new RangeField(100, 0, 100, func),
+            brightness: new RangeField(100, 0, 100, func),
+            alpha: new RangeField(100, 0, 100, func),
         }
     }
 
@@ -263,28 +264,71 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             name: "amplitude",
             add: function(){
                 this.instance = new p5.Amplitude();
-                this.instance.setInput(audio);
             },
             out: {
                 level: {
                     update: function(p){
                         return this.instance.getLevel();
                     },
-                    effects: [],
-                    live: null,
                 }
             },
-            outProps: {
-                level: {min:0, max:1, type:"number"},
+        },
+
+        frequencies: {
+            name: "frequencies",
+            add: function(){
+                this.instance = new p5.FFT(this.props.smoothing.value, this.props.detail.real);
+            },
+            out: {
+                waveform: {
+                    update: function(p){
+                        return this.instance.waveform(this.props.detail.real);
+                    },
+                    type: 'array',
+                },
+                spectrum: {
+                    update: function(p){
+                        var spectrum = this.instance.analyze(this.props.detail.real);
+                        //var start = this.props.startFreq;
+                        //var stop = this.props.stopFreq;
+                        //if(start )
+                        return spectrum;
+                    },
+                    type: 'array',
+                },
+                energy: {
+                    update: function(p){
+                        if(this.out.spectrum.live == null)
+                        {
+                            this.out.spectrum.update();
+                        }
+                        var start = this.props.startFreq;
+                        var stop = this.props.stopFreq;
+                        return this.instance.getEnergy(start.value + start.live, stop.value + stop.live);
+                    },
+                },
+                centroid: {
+                    update: function(p){
+                        if(this.out.spectrum.live == null)
+                        {
+                            this.out.spectrum.update();
+                        }
+                        return this.instance.getCentroid();
+                    }
+                }
             },
             props: {
-
-            },
-            live: {
-                normalizeToggle: false,
-            },
-            instance: null,
-            affected: [],
+                smoothing: new RangeField(0.8, 0, 1, function(parent, value){parent.instance.smooth(value)}),
+                startFreq: new RangeField(0, 0, 100),
+                stopFreq: new RangeField(100, 0, 100),
+                detail: new RangeField(6, 0, 6, function(parent, value){
+                    var value = Math.floor(value);
+                    if(value > 6) value = 6;
+                    else if(value < 0) value = 0;
+                    parent.props.detail.real = parent.props.detailLevels.value[value];
+                }, 1),
+                detailLevels: {value: [16, 32, 64, 128, 256, 512, 1024], hidden:true},
+            }
         }
     }
 
@@ -339,19 +383,38 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         return newObject;
     }
 
-    $scope.addInput = function(input){
-        var newInput = angular.copy(input);
-        if(newInput.add)
-            newInput.add($scope.sketch);
+    $scope.addInput = function(newInput){
 
-        newInput.type = "input";
-        newInput.name = newInput.name + $scope.scene.inputs.length;
+        var input = {
+            props: {},
+            live: {},
+            affected: [],
+            type: "input",
+        };
 
-        $scope.scene.inputs.push(newInput);
+        var defaultOutput = {
+            effects: [],
+            live: null,
+            type: 'number',
+        }
+        
+        //add the input object to the defaults
+        angular.extend(input, newInput);
+
+        angular.forEach(input.out, function(out, name){
+            angular.extend(out, defaultOutput);
+        });
+
+        if(input.add)
+            input.add($scope.sketch);
+
+        input.name = input.name + $scope.scene.inputs.length;
+
+        $scope.scene.inputs.push(input);
         $scope.slowUpdate("select");
-        $scope.selected(newInput);
+        $scope.selected(input);
 
-        return newInput;
+        return input;
     }
 
 
