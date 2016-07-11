@@ -128,3 +128,11 @@ footer.footer {
   border-bottom: 1px solid #FF0000;
   box-shadow: 0 1px 0 0 #FF0000;
 }
+
+.side-nav .collapsible-body li.active > a, .side-nav.fixed .collapsible-body li.active > a {
+  color: white;
+}
+
+.side-nav .collapsible-body li.active a, .side-nav.fixed .collapsible-body li.active a {
+  color: inherit;
+}

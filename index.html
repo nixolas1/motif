@@ -52,10 +52,10 @@
                 <subnav title="Connection">
                     <li>
                         <div class="input-field listpadd">
-                            <select ng-options="obj.name for obj in scene.objects" ng-model="con.obj" ng-change="clickSel()"></select>
+                            <select id="obj-con" ng-options="obj.name for obj in scene.objects" ng-model="con.obj" ng-change="clickSel('obj-prop-con')"></select>
                         </div>
                         <div class="input-field listpadd">
-                            <select id="obj-prop-con" ng-options="name for (name, props) in con.obj.props" ng-model="con.prop">
+                            <select id="obj-prop-con" ng-change="clickSel('input-con')" ng-options="name for (name, props) in con.obj.props" ng-model="con.prop">
                             </select>
                         </div>
                     </li>
@@ -64,10 +64,10 @@
 
                     <li>
                         <div class="input-field listpadd">
-                            <select ng-options="input.name for input in scene.inputs" ng-model="con.input" ng-change="clickSel()"></select>
+                            <select id="input-con" ng-options="input.name for input in scene.inputs" ng-model="con.input" ng-change="clickSel('out-con')"></select>
                         </div>
                         <div class="input-field listpadd">
-                            <select ng-options="name for (name, out) in filtered(con.input.out, 'type', con.prop.type)" ng-model="con.output"></select>
+                            <select id="out-con" ng-options="name for (name, out) in filtered(con.input.out, 'type', con.prop.type)" ng-model="con.output"></select>
                         </div>
                     </li>
 

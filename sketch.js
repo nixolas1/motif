@@ -2,6 +2,7 @@ var app = angular.module('motif', []);
 app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     var audio, canvas;
     var localTag = "motifs";
+    var MAX_FREQ = 22050;
     $scope.con = {input:{}, output:{}, obj:{}, prop:{}, prName:null};
     $scope.eff = {input:{}, output:{}, eff:{}};
     $scope.saved = JSON.parse(localStorage.getItem(localTag));
@@ -21,12 +22,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     //Creates a dict for range inputs
     var RangeField = function(start, minimum, maximum, func, inStep){
         var step = inStep || 0.1;
-        return {value: start, min: minimum, max: maximum, step: step, live: 0, type:"number", htmlType: "range", func: func, real: 0};
+        return {value: start, min: minimum, max: maximum, step: step, live: 0, type:"number", htmlType: "range", func: func, real: start};
     }
 
     var ColorField = function(hue, bright, func){
         return {
-            hue: new RangeField(0, 0, 100, func),
+            hue: new RangeField(0, 0, 360, func),
             saturation: new RangeField(100, 0, 100, func),
             brightness: new RangeField(100, 0, 100, func),
             alpha: new RangeField(100, 0, 100, func),
@@ -37,7 +38,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     function toArgs(p, type, sketch){
         switch(type){
             case "color":
-                return [p.hue.value+p.hue.live, p.saturation.value+p.saturation.live, p.brightness.value+p.brightness.live, p.alpha.value+p.alpha.live];
+                return [(p.hue.value+p.hue.live) % 360, p.saturation.value+p.saturation.live, p.brightness.value+p.brightness.live, p.alpha.value+p.alpha.live];
 
             case "xywhs":
                // console.log(p, [posMap(p.x.value + p.x.live, sketch.width), posMap(p.y.value + p.y.live, sketch.height), sizeMap(p.width.value + p.width.live, sketch.width), sizeMap(p.height.value + p.height.live, sketch.width)])
@@ -47,6 +48,16 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     }
 
+    //returns object with key:value instead of key:field
+    function toValues(propertiesObject){
+        var props = angular.copy(propertiesObject);
+        angular.forEach(props, function(prop, name){
+            props[name] = prop.value;
+        });
+
+        return props;
+    }
+
     //Applies defined effects to an output and caches it
     function processOutput(out, input){
         var processed = out.update.apply(input);
@@ -54,8 +65,9 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         var effLen = effs.length;
 
         for (var i = 0; i < effLen; i++) {
-            processed = effs[i].update(processed);
+            processed = effs[i].update(processed); 
         };
+
 
         out.live = processed;
         return processed;
@@ -83,11 +95,19 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
         //add default stuff if empty
         if($scope.scene.objects.length == 0){
-            $scope.addObject($scope.objects.background, {saturation: 0, brightness: 50});
+            $scope.addObject($scope.objects.background, {saturation: 90, brightness: 90, hue:20});
             var ellipse = $scope.addObject($scope.objects.ellipse);
-            var amp = $scope.addInput($scope.inputs.amplitude);
-            //var conn = $scope.addConnection(amp, amp.out.level, ellipse.props.y, "ell.init.y", 100)
-            $scope.addEffect(amp.out.level, $scope.effects.normalize, {smoothness: 5});
+            var input = $scope.addInput($scope.inputs.frequencies);
+            //var conn = $scope.addConnection(input, input.out.level, ellipse.props.y, "ell.init.y", 100)
+            //$scope.addEffect(input.out.level, $scope.effects.normalize, {smoothness: 5});
+        } else {
+
+            //re-initialize all input instances
+            angular.forEach($scope.scene.inputs, function(input, name){
+                if(input.add){
+                    input.add($scope.sketch);
+                }
+            });
         }
     }
 
@@ -166,8 +186,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
             //STRUCTURE: make xywh new Physical, join with toProps(new Physical, new Color)
             props: {
-                x: new RangeField(0, -100, 100),
-                y: new RangeField(0, -100, 100),
+                x: new RangeField(0, -200, 200),
+                y: new RangeField(0, -200, 200),
                 height: new RangeField(0, 0, 200),
                 width: new RangeField(0, 0, 200),
                 size: new RangeField(20, 0, 200),
@@ -198,8 +218,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
             //STRUCTURE: make xywh new Physical, join with toProps(new Physical, new Color)
             props: {
-                x: new RangeField(0, -100, 100),
-                y: new RangeField(0, -100, 100),
+                x: new RangeField(0, -200, 200),
+                y: new RangeField(0, -200, 200),
                 height: new RangeField(0, 0, 200),
                 width: new RangeField(0, 0, 200),
                 size: new RangeField(20, 0, 200),
@@ -282,27 +302,31 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                     update: function(p){
                         if(this.out.spectrum.live == null)
                         {
-                            this.out.spectrum.update();
+                            this.out.spectrum.update.apply(this);
                         }
                         var start = this.props.startFreq;
                         var stop = this.props.stopFreq;
-                        return this.instance.getEnergy(start.value + start.live, stop.value + stop.live);
+                        var energy = this.instance.getEnergy(start.value + start.live, stop.value + stop.live) / 2.55;
+
+                        return energy;
                     },
                 },
                 centroid: {
                     update: function(p){
-                        if(this.out.spectrum.live == null)
+                        var spectrum = this.out.spectrum;
+                        if(spectrum.live == null)
                         {
-                            this.out.spectrum.update();
+                            spectrum.update.apply(this);
                         }
-                        return this.instance.getCentroid();
+                        var centroid = this.instance.getCentroid();
+                        return centroid / MAX_FREQ * 100;
                     }
                 }
             },
             props: {
-                smoothing: new RangeField(0.8, 0, 1, function(parent, value){parent.instance.smooth(value)}),
-                startFreq: new RangeField(0, 0, 100),
-                stopFreq: new RangeField(100, 0, 100),
+                smoothing: new RangeField(0.8, 0, 0.99, function(parent, value){parent.instance.smooth(value)}, 0.01),
+                startFreq: new RangeField(40, 40, MAX_FREQ),
+                stopFreq: new RangeField(120, 40, MAX_FREQ),
                 detail: new RangeField(6, 0, 6, function(parent, value){
                     var value = Math.floor(value);
                     if(value > 6) value = 6;
@@ -324,7 +348,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         },
         add: function(p){
           //{dynamic: true, damping: 1000, overflow: false, dampingMultiplier: 10, smoothness:10}
-          this.instance = new p5.Normalizer(this.props)
+          var props = toValues(this.props);
+          this.instance = new p5.Normalizer(props)
         },
         props: {
           smoothness: new NumberField(2, 0),
@@ -366,6 +391,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     $scope.addInput = function(newInput){
 
+        var tryAgain = [];
+
         var input = {
             props: {},
             live: {},
@@ -386,8 +413,27 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             angular.extend(out, defaultOutput);
         });
 
+        angular.forEach(input.props, function(prop, name){
+            if(prop.func){
+                try{
+                    prop.func(input, prop.value);
+                }
+                catch(err){
+                    tryAgain.push(prop);
+                }
+            }
+        });
+
         if(input.add)
             input.add($scope.sketch);
+
+        angular.forEach(tryAgain, function(prop, name){
+            if(prop.func){
+                prop.func(input, prop.value);
+            }
+        });
+
+
 
         input.name = input.name + $scope.scene.inputs.length;
 
@@ -404,8 +450,10 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         if(props)
           angular.extend(newEffect.props, props);
 
+
+
         if(newEffect.add)
-            newEffect.add(newEffect.props);
+            newEffect.add($scope.sketch);
 
         if(!affected.effects)
             affected.effects = [];
@@ -434,6 +482,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     $scope.clickSel = function(id){
         $scope.slowUpdate("select");
+        if(id)
+            $scope.slowUpdate("openSelect", id);
     };
 
     $scope.updateLocalStorage = function(){
@@ -443,16 +493,22 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     $scope.slowUpdate = function(type, selector, func){
       $timeout(function (){
         switch (type) {
-          case "select":
-            $('select').material_select();
-            break;
+            case "select":
+                $('select').material_select();
+                break;
 
-          case "collapsible":
-            $('.collapsible').collapsible();
-            break;
+            case "collapsible":
+                $('.collapsible').collapsible();
+                break;
 
-          default:
-            $(selector).call(func);
+            case "openSelect":
+                var val = $("#"+selector)[0].value;
+                if(!val || val == "?")
+                    $("#"+selector).siblings("input.select-dropdown").trigger("click");
+                break;
+
+            default:
+                $(selector).call(func);
             break;
         }
       }, 0);
@@ -525,14 +581,14 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     $scope.filtered = function(toFilter, prop, value){
         return toFilter; //Todo fix rest
 
-        var out = {};
+        /*var out = {};
         angular.forEach(toFilter, function(item, key){
             console.log(item, prop, key, value)
             if(item[prop] === value){
                 out[key] = item;
             }
         });
-        return out;
+        return out;*/
     }
 
 
