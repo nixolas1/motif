@@ -184,7 +184,7 @@
                                 <div class="input-field range-field listpadd col s12">
                                     <input
                                         ng-model="prop.value"
-                                        type="{{htmlType(prop.type)}}"
+                                        type="{{prop.htmlType}}"
                                         placeholder="{{name}} {{field}}"
                                         id="{{$parent.$index+open.name+name+field}}"
                                         max="{{prop.max}}"

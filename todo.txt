@@ -7,12 +7,17 @@ ok 7. re-arrange and remove added stuff
 ish 3. frontend change effect props
 6. add remove button to right sidebar elements
 ish 4. make more objects and inputs
-
+7. multiplier as math function / function of other things
 8. save/restore localstorage functionality
 10. optimize
 11. add time editing to footer
+12. filter
 
+BUGS:
+adding new input of same type overwrites previous
+effects list not working
 
+rotation
 
 
 

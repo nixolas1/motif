@@ -12,10 +12,13 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     //Creates a dict for number inputs
     var NumberField = function(val, minimum, func){
+        var mini = minimum || -Infinity;
+        if(minimum == 0) mini = 0;
+
         return {value: val, min: minimum, live: 0, func: func, real: 0, type: "number", htmlType: "number"}
     }
 
-    var BooleanField = function(val, minimum, func){
+    var BooleanField = function(val, func){
         return {value: val, type: "boolean", live: val, func: func, htmlType: "checkbox"}
     }
 
@@ -68,9 +71,23 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             processed = effs[i].update(processed); 
         };
 
-
         out.live = processed;
         return processed;
+    }
+
+    function setupNormalDrawing(props, p5){
+        if(!props.stroke.value){
+            p5.noStroke();
+        } else {
+            p5.stroke(0);
+            p5.strokeWeight(props.stroke.value + props.stroke.live);
+        }
+        p5.fill.apply(p5, toArgs(props, "color"));
+
+        if(props.rotation.value || props.rotation.live){
+            //translate(props.width.real/2, props.height.real/2);
+            p5.rotate(props.rotation.value + props.rotation.live);
+        }
     }
 
     //maps a value n with range between start1 and stop1 to a range between start2 and stop2
@@ -174,14 +191,13 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             name: "ellipse",
             draw: function(p5){
                 var prop = this.props;
-                if(!prop.stroke.value){
-                    p5.noStroke();
-                } else {
-                    p5.stroke(0);
-                    p5.strokeWeight(prop.stroke.value + prop.stroke.live);
-                }
-                p5.fill.apply(p5, toArgs(prop, "color"));
-                p5.ellipse.apply(p5, toArgs(prop, "xywhs", p5));
+                var args = toArgs(prop, "xywhs", p5);
+                prop.width.real = args[2];
+                prop.height.real = args[3];
+
+                setupNormalDrawing(prop, p5);
+
+                p5.ellipse.apply(p5, args);
             },
 
             //STRUCTURE: make xywh new Physical, join with toProps(new Physical, new Color)
@@ -195,6 +211,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                 saturation: new RangeField(100, 0, 100),
                 brightness: new RangeField(50, 0, 100),
                 alpha: new RangeField(100, 0, 100),
+                rotation: new NumberField(0),
                 stroke: new NumberField(0, 0),
             },
         },
@@ -203,15 +220,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             name: "rect",
             draw: function(p5){
                 var prop = this.props;
-                if(!prop.stroke.value){
-                    p5.noStroke();
-                } else {
-                    p5.stroke(0);
-                    p5.strokeWeight(prop.stroke.value + prop.stroke.live);
-                }
-                p5.fill.apply(p5, toArgs(prop, "color"));
-
                 var args = toArgs(prop, "xywhs", p5);
+
+                prop.width.real = args[2];
+                prop.height.real = args[3];
+                setupNormalDrawing(prop, p5);
+
                 //args.push(prop.roundness);
                 p5.rect.apply(p5, args);
             },
@@ -228,7 +242,56 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                 saturation: new RangeField(100, 0, 100),
                 brightness: new RangeField(50, 0, 100),
                 alpha: new RangeField(100, 0, 100),
+                rotation: new NumberField(0, -Infinity),
                 stroke: new NumberField(0, 0),
+            },
+        },
+
+
+        multiline: {
+            name: "multiline",
+            draw: function(p5){
+               /*
+                var prop = this.props;
+                noFill();
+                strokeWeight(4);
+                stroke(255, 0, 0);
+                strokeJoin(ROUND); //3
+                strokeCap(ROUND); //3
+                translate(50, 50);
+                rotate
+                scale
+                curveTightness(t);
+
+                //p5.rect.apply(p5, args);
+                beginShape(LINES); //7
+
+                vertex(30, 20);
+                curveVertex(32, 100);
+                bezierVertex(80, 0, 80, 75, 30, 75);
+                endShape(CLOSE);*/
+                
+            },
+
+            props: {
+                
+                shape: new RangeField(0, 0, 7),
+                vertex: new RangeField(0, 0, 3),
+                closed: new BooleanField(false),
+
+                zoom: new RangeField(20, 0, 200),
+                x: new RangeField(0, -200, 200),
+                ÿ: new RangeField(0, -200, 200),
+                rotation: new NumberField(0),
+
+                hue: new RangeField(0, 0, 360),
+                saturation: new RangeField(100, 0, 100),
+                brightness: new RangeField(0, 0, 100),
+                alpha: new RangeField(100, 0, 100),
+                stroke: new NumberField(5, 0),
+                joints: new RangeField(0, 0, 3),
+                caps: new RangeField(0, 0, 3),
+
             },
         },
 
@@ -352,17 +415,14 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
           this.instance = new p5.Normalizer(props)
         },
         props: {
-          smoothness: new NumberField(2, 0),
-          damping: new NumberField(1000, 0),
-          dampingMultiplier: new NumberField(10, 0),
-          multiplier: new NumberField(1, 0),
-          dynamic: new BooleanField(true),
-          overflow: new BooleanField(false),
-          isArray: new BooleanField(false),
-          debug: new BooleanField(false),
-        },
-        set: function(options){
-          this.props = angular.extend(this.props, options);
+          smoothness: new NumberField(2, 0,         $scope.setInstanceProps),
+          damping: new NumberField(1000, 0,         $scope.setInstanceProps),
+          dampingMultiplier: new NumberField(10, 0, $scope.setInstanceProps),
+          multiplier: new NumberField(1, 0,         $scope.setInstanceProps),
+          dynamic: new BooleanField(true,           $scope.setInstanceProps),
+          overflow: new BooleanField(false,         $scope.setInstanceProps),
+          isArray: new BooleanField(false,          $scope.setInstanceProps),
+          debug: new BooleanField(false,            $scope.setInstanceProps),
         },
         instance: null,
         affected: [] 
@@ -441,6 +501,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         $scope.slowUpdate("select");
         $scope.selected(input);
 
+        console.log($scope.scene.inputs)
+
         return input;
     }
 
@@ -449,8 +511,6 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         var newEffect = angular.copy(effect);
         if(props)
           angular.extend(newEffect.props, props);
-
-
 
         if(newEffect.add)
             newEffect.add($scope.sketch);
@@ -466,6 +526,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         return newEffect;
     }
 
+
     $scope.addConnection = function(input, output, property, givenName, modifier){
         var mod = modifier || 1;
         var name = givenName || "unnamed";
@@ -474,6 +535,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
         return input.affected[input.affected.length -1];
     }
+
 
     $scope.selected = function(object){
         $scope.open = object;
@@ -489,6 +551,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     $scope.updateLocalStorage = function(){
         localStorage.setItem(localTag, JSON.stringify($scope.saved));
     }
+
+    $scope.setInstanceProps = function(parent){
+        angular.forEach(parent.props, function(prop, name){
+            parent.instance[name] = prop.value;
+        });
+    };
 
     $scope.slowUpdate = function(type, selector, func){
       $timeout(function (){
@@ -636,6 +704,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
             p.background(200,200,200);
             p.colorMode(p.HSB, 360, 100, 100, 100);
+            p.rectMode(p.CENTER);
             //audio.play();
 
             console.log("Ready!");
