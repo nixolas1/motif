@@ -22,6 +22,11 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         return {value: val, type: "boolean", live: val, func: func, htmlType: "checkbox"}
     }
 
+    var ArrayField = function(val, func){
+        var value = val || [];
+        return {value: value, type: "array", live: value, func: func, htmlType: "text"}
+    }
+
     //Creates a dict for range inputs
     var RangeField = function(start, minimum, maximum, func, inStep){
         var step = inStep || 0.1;
@@ -95,6 +100,11 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
       return ((n-start1)/(stop1-start1))*(stop2-start2)+start2;
     };
 
+    //convert number to a positive integer
+    function toPosInt(num){
+        return Math.abs(Math.round(num));
+    }
+
     //helper function for mapping canvas objects' size to canvas size, so they are displayed with same size on different monitors
     function sizeMap(input, biggest){
         return remap(input, 0, 100, 0, biggest);
@@ -113,9 +123,9 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         //add default stuff if empty
         if($scope.scene.objects.length == 0){
             $scope.addObject($scope.objects.background, {saturation: 90, brightness: 90, hue:20});
-            var ellipse = $scope.addObject($scope.objects.ellipse);
+            var ellipse = $scope.addObject($scope.objects.multiline);
             var input = $scope.addInput($scope.inputs.frequencies);
-            //var conn = $scope.addConnection(input, input.out.level, ellipse.props.y, "ell.init.y", 100)
+            var conn = $scope.addConnection(input, input.out.waveform, ellipse.props.points, "points_test", 1);
             //$scope.addEffect(input.out.level, $scope.effects.normalize, {smoothness: 5});
         } else {
 
@@ -156,7 +166,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                         val = processOutput(affected.out, input);
                     }
 
-                    affected.prop.live += val * affected.modifier;
+                    if(affected.prop.type != "array"){
+                        affected.prop.live += val * affected.modifier;
+                    } else {
+                        affected.prop.live = val;
+                        //console.log(val)
+                    }
                 }
             };
         },
@@ -251,37 +266,106 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         multiline: {
             name: "multiline",
             draw: function(p5){
-               /*
-                var prop = this.props;
-                noFill();
-                strokeWeight(4);
-                stroke(255, 0, 0);
-                strokeJoin(ROUND); //3
-                strokeCap(ROUND); //3
-                translate(50, 50);
-                rotate
-                scale
-                curveTightness(t);
+               
+                var props = this.props;
 
-                //p5.rect.apply(p5, args);
-                beginShape(LINES); //7
+                if(!props.points.value.length && !props.points.live.length){
+                    //no point data. No point (HA!) in continuing.
+                    return;
+                }
 
-                vertex(30, 20);
-                curveVertex(32, 100);
-                bezierVertex(80, 0, 80, 75, 30, 75);
-                endShape(CLOSE);*/
+                p5.noFill();
+
+                p5.strokeWeight(props.stroke.value + props.stroke.live);
+                p5.stroke(toArgs(props, "color"));
+                p5.strokeJoin(toPosInt(props.joints.value + props.joints.live) % 3);
+                p5.strokeCap(toPosInt(props.caps.value + props.caps.live) % 3);
+                p5.curveTightness(props.tightness.value + props.tightness.live);
+
+                var xywh = toArgs(props, "xywhs", p5);
+                //p5.translate(xywh[0], xywh[1]);
+                //p5.scale(xywh[2], xywh[3]);
+                //rotate
+
+
+                /*
+                Array possibilities:
+                Defined point list CONNECTED TO number: all entries multiplied/affected by number
+                ONE point in point list connected to number
+                empty connected to array: display array
+                point list connected to array: additive where lists overlap
+
+
+                */
+                var points = props.points.live; //props.points.real
+                var curved = toPosInt(props.curved.value + props.curved.live) % 2;
+                var isCoords = typeof(points[0][1]) != "undefined";
+                var width = p5.width;
+                var height = p5.height;
+                var pointLength = points.length - 1;
+                var spacing = sizeMap(props.spacing.value + props.spacing.live, width);
+                var shape = toPosInt(props.shape.value + props.shape.live) % 8;
+                var maximumVal = props.maximum.value;
+                var minimumVal = props.minimum.value;
+                var multiplier = props.multiplier.value + props.multiplier.live;
+                var zeroPadded = props.zeroPadded.value + props.zeroPadded.live;
+
+                p5.beginShape(shape);
+
+                if(zeroPadded){
+                    p5.vertex(posMap(-101, width), posMap(0, height));
+                }
+
+                for(var i = 0; i < pointLength; i++){
+                    var x;
+                    var y;
+
+                    if(!isCoords){
+                        x = i * spacing/10;
+                        x = remap(x, 0, pointLength, 0, width);
+
+                        y = points[i]*multiplier;
+                        y = remap(y, minimumVal, maximumVal, 0, height);
+                    } else {
+                        x = points[i][0];
+                        y = points[i][1];
+                    }
+
+                    
+
+                    if(curved >= 1){
+                        p5.curveVertex(x, y);
+                    }
+                    else {
+                        p5.vertex(x, y);
+                    }
+                }
+
+                if(zeroPadded){
+                    p5.vertex(posMap(101, width), posMap(0, height));
+                }
+
+                p5.endShape(toPosInt(props.closed.value + props.closed.live) % 3);
                 
             },
 
             props: {
                 
-                shape: new RangeField(0, 0, 7),
-                vertex: new RangeField(0, 0, 3),
-                closed: new BooleanField(false),
-
-                zoom: new RangeField(20, 0, 200),
+                points: new ArrayField(),
+                
+                shape: new RangeField(0, 0, 8, null, 1),
+                curved: new NumberField(0, 0),
+                closed: new NumberField(0, 0),
+                tightness: new NumberField(0),
+                curve: new NumberField(1), //TODO bend vertex based on equation/number
+                spacing: new NumberField(1, 0.0001),
                 x: new RangeField(0, -200, 200),
-                ÿ: new RangeField(0, -200, 200),
+                y: new RangeField(0, -200, 200),
+                height: new RangeField(0, 0, 200),
+                width: new RangeField(0, 0, 200),
+                size: new RangeField(0, 0, 200),
+
+
                 rotation: new NumberField(0),
 
                 hue: new RangeField(0, 0, 360),
@@ -289,8 +373,14 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                 brightness: new RangeField(0, 0, 100),
                 alpha: new RangeField(100, 0, 100),
                 stroke: new NumberField(5, 0),
-                joints: new RangeField(0, 0, 3),
-                caps: new RangeField(0, 0, 3),
+                joints: new RangeField(0, 0, 3, null, 1),
+                caps: new RangeField(0, 0, 3, null, 1),
+
+                maximum: new NumberField(1),
+                minimum: new NumberField(-1),
+                multiplier: new NumberField(1),
+                zeroPadded: new RangeField(0, 0, 1, null, 1),
+
 
             },
         },
@@ -347,13 +437,22 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             out: {
                 waveform: {
                     update: function(p){
-                        return this.instance.waveform(this.props.detail.real);
+                        var waveform = this.instance.waveform(this.props.detail.real);
+                        var detail = this.props.detail.real;
+                        if(detail < 1024)
+                            waveform.length = detail;
+
+                        return waveform;
                     },
                     type: 'array',
                 },
                 spectrum: {
                     update: function(p){
                         var spectrum = this.instance.analyze(this.props.detail.real);
+
+                        var detail = this.props.detail.real;
+                        if(detail < 1024)
+                            spectrum.length = detail;
                         //var start = this.props.startFreq;
                         //var stop = this.props.stopFreq;
                         //if(start )
@@ -493,15 +592,11 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             }
         });
 
-
-
         input.name = input.name + $scope.scene.inputs.length;
 
         $scope.scene.inputs.push(input);
         $scope.slowUpdate("select");
         $scope.selected(input);
-
-        console.log($scope.scene.inputs)
 
         return input;
     }

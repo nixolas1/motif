@@ -21,6 +21,15 @@ rotation
 
 
 
+pres:
+demo som funker bra: det kuleste
+forklare teknologier
+tanken i starten
+videre etter shit
+
+blog:
+hvordan utviklerfasen startet
+
 
 
 
