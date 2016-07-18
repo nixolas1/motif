@@ -77,14 +77,14 @@ MotifObjects = {
 
             p5.strokeWeight(props.stroke.value + props.stroke.live);
             p5.stroke(toArgs(props, "color"));
-            p5.strokeJoin(toPosInt(props.joints.value + props.joints.live) % 3);
-            p5.strokeCap(toPosInt(props.caps.value + props.caps.live) % 3);
+            p5.strokeJoin(Math.round(props.joints.value));
+            p5.strokeCap(Math.round(props.caps.value ));
             p5.curveTightness(props.tightness.value + props.tightness.live);
 
-            var xywh = toArgs(props, "xywhs", p5);
+            //var xywh = toArgs(props, "xywhs", p5);
             //console.log(xywh)
             //p5.translate(xywh[0], xywh[1]);
-            p5.scale(xywh[2]+1, xywh[3]+1);
+            //p5.scale(xywh[2]+1, xywh[3]+1);
             //rotate
 
 
@@ -113,7 +113,7 @@ MotifObjects = {
             p5.beginShape(shape);
 
             if(zeroPadded){
-                p5.vertex(posMap(-101, width), posMap(0, height));
+                p5.vertex(posMap(-100, width), posMap(0, height));
             }
 
             for(var i = 0; i < pointLength; i++){
@@ -142,7 +142,7 @@ MotifObjects = {
             }
 
             if(zeroPadded){
-                p5.vertex(posMap(101, width), posMap(0, height));
+                p5.vertex(posMap(100, width), posMap(0, height));
             }
 
             p5.endShape(toPosInt(props.closed.value + props.closed.live) % 3);
@@ -192,6 +192,18 @@ MotifObjects = {
             p5.background(toArgs(p, "color"));
         },
         props: new ColorField
+    },
+
+    blending: {
+        name: "blending",
+        draw: function(p5){
+            p5.blendMode(p5[this.props.mode.value]);
+        },
+        props: {
+            mode: new SelectField("BLEND", [
+                "BLEND", "ADD", "DARKEST", "LIGHTEST", "DIFFERENCE", "EXCLUSION", "MULTIPLY", "SCREEN", "REPLACE", "OVERLAY", "HARD_LIGHT", "SOFT_LIGHT", "DODGE","BURN",
+            ]),
+        }
     },
 
     clear: {
