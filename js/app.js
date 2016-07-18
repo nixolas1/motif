@@ -17,10 +17,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
         //add default stuff if empty
         if($scope.scene.objects.length == 0){
+            $scope.addObject($scope.objects.blending, {mode: "BLEND"});
             $scope.addObject($scope.objects.background, {saturation: 90, brightness: 90, hue:20});
-            var ellipse = $scope.addObject($scope.objects.multiline);
-            var input = $scope.addInput($scope.inputs.frequencies);
-            var conn = $scope.addConnection(input, input.out.waveform, ellipse.props.points, "points_test", 1);
+            globalFFT = $scope.addInput($scope.inputs.frequencies, true);
+
+            var ellipse = $scope.addObject($scope.objects.ellipse);
+            //var conn = $scope.addConnection(input, input.out.waveform, ellipse.props.points, "points_test", 1);
             //$scope.addEffect(input.out.level, $scope.effects.normalize, {smoothness: 5});
         } else {
 
@@ -85,17 +87,23 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             var inputs = this.inputs;
 
             for (var i = inputs.length - 1; i >= 0; i--) {
-                var aff = inputs[i].affected;
+                var input = inputs[i];
+                var aff = input.affected;
                 for (var j = aff.length - 1; j >= 0; j--) {
-                    aff[j].prop.live = 0;
-                    aff[j].out.live = null;
+                    var element = aff[j];
+                    element.prop.live = 0;
+                    element.out.live = null;
+
+                    if(element.out.dependent){
+                        element.out.dependent(input).live = null;
+                    }
                 };
             };
         },
     };
 
 
-    $scope.addObject = function(object, props){
+    $scope.addObject = function(object, props, undeletable){
         var newObject = angular.copy(object);
         
         angular.forEach(props, function(value, name) {
@@ -104,17 +112,19 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
         if(newObject.add)
             newObject.instance = newObject.add(newObject.props);
-        $scope.scene.objects.push(newObject);
 
         newObject.name = newObject.name + $scope.scene.objects.length;
         newObject.type = "object";
+        newObject.undeletable = undeletable;
+
+        $scope.scene.objects.push(newObject);
 
         $scope.slowUpdate("select");
         $scope.selected(newObject);
         return newObject;
     }
 
-    $scope.addInput = function(newInput){
+    $scope.addInput = function(newInput, undeletable){
 
         var tryAgain = [];
 
@@ -123,6 +133,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             live: {},
             affected: [],
             type: "input",
+            undeletable: undeletable,
         };
 
         var defaultOutput = {
@@ -334,6 +345,7 @@ var sketch = function(p){
 
 
         parent = $("#canvas-container");
+
     }
 
     p.setup = function () {
@@ -359,6 +371,10 @@ var sketch = function(p){
         p.rectMode(p.CENTER);
         //audio.play();
 
+        $("#loading-container").remove();
+        $("footer").show();
+        p.windowResized();
+
         console.log("Ready!");
 
     }
@@ -373,7 +389,11 @@ var sketch = function(p){
     }
 
     p.windowResized = function() {
-      p.resizeCanvas(parent.width(), parent.height());
+        var footerHeight = $("footer").height();
+        if(footerHeight > window.innerHeight/4) footerHeight = window.innerHeight/4;
+        if(footerHeight < 150) footerHeight = 150;
+        var height = window.innerHeight - footerHeight - 7;
+        p.resizeCanvas(parent.width(), height);
     }
 }
 

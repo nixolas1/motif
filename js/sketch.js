@@ -1,7 +1,8 @@
 
 var audio, canvas;
 var localTag = "motifs";
-var MAX_FREQ = 22050;
+var MAX_FREQ = 20000;
+var globalFFT = {};
 
 //Creates a dict for number inputs
 var NumberField = function(val, minimum, func, step){
@@ -18,6 +19,14 @@ var BooleanField = function(val, func){
 var ArrayField = function(val, func){
     var value = val || [];
     return {value: value, type: "array", live: value, func: func, htmlType: "text"}
+}
+
+var SelectField = function(val, values, func){
+    if(!val && values){
+        val = values[0];
+    }
+
+    return {value: val, options: values, type: "array", live: val, func: func, htmlType: "select"}
 }
 
 //Creates a dict for range inputs
@@ -61,6 +70,12 @@ function toValues(propertiesObject){
 
 //Applies defined effects to an output and caches it
 function processOutput(out, input){
+    if(out.dependent){
+        var dependent = out.dependent(input);
+        if(dependent && dependent.live == null){
+            dependent.live = processOutput(dependent, out.dependentParent || input);
+        }
+    }
     var processed = out.update.apply(input);
     var effs = out.effects;
     var effLen = effs.length;
