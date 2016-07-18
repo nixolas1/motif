@@ -4,9 +4,19 @@ ok 1. graphical connect input to object
 ok 1.5 prepare normalize and smooth for usage
 ok 2. connect effect to input
 ok 7. re-arrange and remove added stuff
-ish 3. frontend change effect props
+
+
+3. frontend change effect props
 6. add remove button to right sidebar elements
-ish 4. make more objects and inputs
+
+multiline:
+    * invert array
+    * smooth array
+    * add points
+    * fill
+    
+
+4. make more objects and inputs
 7. multiplier as math function / function of other things
 8. save/restore localstorage functionality
 10. optimize
@@ -16,6 +26,7 @@ ish 4. make more objects and inputs
 BUGS:
 adding new input of same type overwrites previous
 effects list not working
+see http://imgur.com/MT5Zvrj
 
 rotation
 

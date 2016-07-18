@@ -162,10 +162,18 @@
                                 max="{{prop.max}}"
                                 min="{{prop.min}}"
                                 step="{{prop.step}}"
-                                ng-if="!prop.hidden"
+                                ng-if="!prop.hidden && prop.htmlType != 'select'"
                                 ng-required="!prop.hidden"
                                 ng-change="prop.func(open, prop.value)"
                             >
+                            <select 
+                                ng-if="prop.htmlType == 'select'" 
+                                ng-options="val for val in prop.options" 
+                                ng-model="prop.value" 
+                                ng-change="prop.func()"
+                                class="browser-default"
+                                >
+                            </select>
                             <label class="active" ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{name}}</label>
                         </div>
 
@@ -210,15 +218,21 @@
 
         <main>
             <div id="canvas-container" height="0px"></div>
+            <div id="loading-container">
+                <div class="spinner">
+                  <div class="cube1"></div>
+                  <div class="cube2"></div>
+                </div>
+            </div>
 
-            <footer class="footer">
+            <footer class="footer" style="display: none">
                 <div class="container">
                     <div class="row">
                         <div class="col s6" ng-repeat="array in [scene.objects, scene.inputs]">
                             <div class="collection">
                                 <a ng-repeat="element in array" ng-click="selected(element)" href="#" class="collection-item">
                                     {{element.name}}
-                                    <span href="#" ng-click="deleteIndex($index, array)" title="Delete" class="right waves-effect waves-red"><i class="material-icons">delete</i></span>
+                                    <span ng-click="deleteIndex($index, array)" ng-if="!element.undeletable" title="Delete" href="#" class="right waves-effect waves-red"><i class="material-icons">delete</i></span>
 
                                     <span ng-repeat="offset in offsets" href="#" ng-click="moveIndex($parent.$index, offset.dir, array)" title="Move {{offset.name}}" class="right"><i class="material-icons">{{offset.icon}}</i></span>
 
