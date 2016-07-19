@@ -11,19 +11,19 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     $scope.init = function(){
 
         $scope.sketch = new p5(sketch, $element[0]);
-        $scope.inputs = MotifInputs;
-        $scope.objects = MotifObjects;
-        $scope.effects = MotifEffects;
+        $scope.inputs = angular.copy(MotifInputs);
+        $scope.objects = angular.copy(MotifObjects);
+        $scope.effects = angular.copy(MotifEffects);
 
         //add default stuff if empty
         if($scope.scene.objects.length == 0){
             $scope.addObject($scope.objects.blending, {mode: "BLEND"});
             $scope.addObject($scope.objects.background, {saturation: 90, brightness: 90, hue:20});
-            globalFFT = $scope.addInput($scope.inputs.frequencies, true);
+            var input = globalFFT = $scope.addInput($scope.inputs.frequencies, true);
 
             var ellipse = $scope.addObject($scope.objects.ellipse);
-            //var conn = $scope.addConnection(input, input.out.waveform, ellipse.props.points, "points_test", 1);
-            //$scope.addEffect(input.out.level, $scope.effects.normalize, {smoothness: 5});
+            //var conn = $scope.addConnection(input, input.out.energy, ellipse.props.size, "points_test", 10);
+            //$scope.addEffect(input.out.energy, $scope.effects.normalize, {smoothness: 5, debug: true});
         } else {
 
             //re-initialize all input instances
@@ -113,7 +113,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         if(newObject.add)
             newObject.instance = newObject.add(newObject.props);
 
-        newObject.name = newObject.name + $scope.scene.objects.length;
+        newObject.name = newObject.name + "_" + ($scope.scene.objects.length+1);
         newObject.type = "object";
         newObject.undeletable = undeletable;
 
@@ -143,12 +143,13 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         }
         
         //add the input object to the defaults
-        angular.extend(input, newInput);
+        angular.merge(input, newInput);
 
         angular.forEach(input.out, function(out, name){
-            angular.extend(out, defaultOutput);
+            angular.merge(out, defaultOutput);
         });
 
+        //run all properties' onUpdate functions
         angular.forEach(input.props, function(prop, name){
             if(prop.func){
                 try{
@@ -160,6 +161,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             }
         });
 
+        //instantiate
         if(input.add)
             input.add($scope.sketch);
 
@@ -169,7 +171,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             }
         });
 
-        input.name = input.name + $scope.scene.inputs.length;
+        //give it a unique name
+        input.name = input.name + "_" + ($scope.scene.inputs.length+1);
 
         $scope.scene.inputs.push(input);
         $scope.slowUpdate("select");
@@ -182,7 +185,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     $scope.addEffect = function(affected, effect, props){
         var newEffect = angular.copy(effect);
         if(props)
-          angular.extend(newEffect.props, props);
+          angular.merge(newEffect.props, props);
 
         if(newEffect.add)
             newEffect.add($scope.sketch);
@@ -194,6 +197,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
         newEffect.type = "effect";
         $scope.slowUpdate("collapsible");
+
 
         return newEffect;
     }
@@ -264,7 +268,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     $scope.openSave = function(save){
         $scope.curSave = save;
-        $scope.scene = angular.extend($scope.scene, save.scene);
+        $scope.scene = angular.merge($scope.scene, save.scene);
         $scope.song = save.song;
 
         $scope.restart();
@@ -336,14 +340,9 @@ var sketch = function(p){
         $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
         
         if(!$scope.song)
-            $scope.song = $scope.songs[Math.floor(Math.random() * $scope.songs.length)];
+            $scope.song = "songs/"+$scope.songs[Math.floor(Math.random() * $scope.songs.length)];
 
-
-         var AUDIO_FILE = "songs/"+$scope.song;
-        audio = p.loadSound(AUDIO_FILE);
-
-
-
+        audio = p.loadSound($scope.song);
         parent = $("#canvas-container");
 
     }

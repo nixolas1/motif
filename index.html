@@ -133,6 +133,19 @@
                 </subnav>
 
                 <subnav title="Songs">
+                    <li class="list-action">
+                        <div class="row">
+                            <div class="input-field col s7">
+                              <input id="song_name" type="url" ng-model="songUrl" />
+                              <label for="song_name">Song url</label>
+                            </div>
+                            <div class="input-field col s5">
+                                <button title="Play" ng-click="selectSong(songUrl)" class="btn-block small-btn btn light-green accent-4 waves-effect waves-light text-white" href>
+                                    <i class="material-icons">play_arrow</i>
+                                </button>
+                            </div>
+                        </div class="row">
+                    </li>
                     <li ng-repeat="music in songs">
                         <a href="#" ng-click="selectSong(music)" title="Select" class="waves-effect waves-teal">
                             {{music}}
@@ -163,6 +176,17 @@
                                 min="{{prop.min}}"
                                 step="{{prop.step}}"
                                 ng-if="!prop.hidden && prop.htmlType != 'select'"
+                                ng-required="!prop.hidden"
+                                ng-change="prop.func(open, prop.value)"
+                            >
+                            <input
+                                ng-model="prop.value"
+                                class="rangeNumberInput"
+                                type="number"
+                                max="{{prop.max}}"
+                                min="{{prop.min}}"
+                                step="{{prop.step}}"
+                                ng-if="!prop.hidden && prop.htmlType != 'select' && prop.htmlType == 'range'"
                                 ng-required="!prop.hidden"
                                 ng-change="prop.func(open, prop.value)"
                             >

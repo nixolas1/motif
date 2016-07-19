@@ -15,6 +15,7 @@ p5.Normalizer = function(options){
     this.minimum = 0;
     this.current = 0;
     this.previous = [];
+    this.first = true;
 
     if(this.damping < 1)
         this.damping = 1;
@@ -25,6 +26,12 @@ p5.Normalizer = function(options){
 
 p5.Normalizer.prototype = {
     normalize : function(value) {
+
+        if(this.first){
+            this.first = false;
+            this.maximum = value;
+            this.minimum = value;
+        }
 
 
         if(this.isArray){
@@ -63,7 +70,11 @@ p5.Normalizer.prototype = {
         }
 
         if(this.debug){
-            console.log("in", value.toFixed(4), "out", this.current.toFixed(4), "max", this.maximum.toFixed(4), "min", this.minimum.toFixed(4));
+            try {
+                console.log("in", value.toFixed(4), "out", this.current.toFixed(4), "max", this.maximum.toFixed(4), "min", this.minimum.toFixed(4));
+            } catch (err) {
+                console.log("in", value, "out", this.current, "max", this.maximum, "min", this.minimum);
+            }
         }
 
         if(this.smoothness > 0){

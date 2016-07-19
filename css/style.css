@@ -133,6 +133,58 @@ footer.footer {
   margin: 200px auto;
 }
 
+input.rangeNumberInput[type="number"] {
+    max-width: 22%;
+    min-width: 20px;
+    -moz-appearance: textfield;
+    margin: 5px 0 0 7px;
+    height: 26px;
+    text-align: center;
+    border-bottom: 1px solid rgba(158, 158, 158, 0.29);
+}
+
+.input-field label {
+    color: #696969;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-top: -12px;
+}
+
+
+input.rangeNumberInput[type=number]::-webkit-inner-spin-button, 
+input.rangeNumberInput[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="range"] + .thumb {
+  display: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

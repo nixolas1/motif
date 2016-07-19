@@ -4,7 +4,7 @@ MotifEffects = {
   normalize: {
     name: "normalize",
     update: function(input){
-        var output = this.instance.normalize(input);      
+        var output = this.instance.normalize(input);  
         return output;
     },
     add: function(p){
