@@ -1,6 +1,4 @@
 todo:
-
-3. frontend change effect props
 6. add remove button to right sidebar elements
 
 multiline:

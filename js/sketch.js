@@ -106,8 +106,8 @@ function setupNormalDrawing(props, p5){
 var setInstanceProps = function(parent){
     if(parent){
         angular.forEach(parent.props, function(prop, name){
-            console.log(name, prop, parent.instance[name])
-            parent.instance[name] = prop.value;
+            if(prop.value || prop.value == 0)
+                parent.instance[name] = prop.value;
         });
     }
 };

@@ -14,7 +14,7 @@ MotifEffects = {
     },
     props: {
       smoothness: new NumberField(2, 0,         setInstanceProps),
-      damping: new NumberField(1000, 0,         setInstanceProps),
+      damping: new NumberField(500, 0,          setInstanceProps),
       dampingMultiplier: new NumberField(10, 0, setInstanceProps),
       multiplier: new NumberField(1, 0,         setInstanceProps),
       dynamic: new BooleanField(true,           setInstanceProps),

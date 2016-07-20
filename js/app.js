@@ -22,8 +22,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             var input = globalFFT = $scope.addInput($scope.inputs.frequencies, true);
 
             var ellipse = $scope.addObject($scope.objects.ellipse);
-            var conn = $scope.addConnection(input, input.out.energy, ellipse.props.size, "points_test", 10);
-            $scope.addEffect(input.out.energy, $scope.effects.normalize, {smoothness: 3, debug: true});
+            //var conn = $scope.addConnection(input, input.out.energy, ellipse.props.size, "points_test", 10);
+            //$scope.addEffect(input.out.energy, $scope.effects.normalize);
         } else {
 
             //re-initialize all input instances

@@ -2,7 +2,7 @@ p5.Normalizer = function(options){
     options = options || {};
 
     this.dynamic = options.dynamic || true; //if true max and min values will follow the average values
-    this.damping = options.damping || 1000; //how fast the dynamic values should change
+    this.damping = options.damping || 200; //how fast the dynamic values should change
     this.dampingMultiplier = options.dampingMultiplier || 10; //difference between positive and negative change in max values
     this.multiplier = options.multiplier || 1; //simply multiplies the output with given number
     this.overflow = options.overflow || false; //allow value to overflow 1 when there is a higher input than normal
