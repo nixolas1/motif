@@ -22,8 +22,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             var input = globalFFT = $scope.addInput($scope.inputs.frequencies, true);
 
             var ellipse = $scope.addObject($scope.objects.ellipse);
-            //var conn = $scope.addConnection(input, input.out.energy, ellipse.props.size, "points_test", 10);
-            //$scope.addEffect(input.out.energy, $scope.effects.normalize, {smoothness: 5, debug: true});
+            var conn = $scope.addConnection(input, input.out.energy, ellipse.props.size, "points_test", 10);
+            $scope.addEffect(input.out.energy, $scope.effects.normalize, {smoothness: 3, debug: true});
         } else {
 
             //re-initialize all input instances
@@ -33,6 +33,10 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                 }
             });
         }
+    }
+
+    $rootScope.log = function(toLog){
+        console.log(toLog);
     }
 
     //main drawer object with all added objects, inputs and connections stored
@@ -185,7 +189,9 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     $scope.addEffect = function(affected, effect, props){
         var newEffect = angular.copy(effect);
         if(props)
-          angular.merge(newEffect.props, props);
+          angular.forEach(props, function(value, name) {
+              newEffect.props[name].value = value;
+          });
 
         if(newEffect.add)
             newEffect.add($scope.sketch);

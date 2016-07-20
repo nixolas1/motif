@@ -76,11 +76,6 @@ i.material-icons {
   margin-top: 5px;
 }
 
-
-.input-field label {
-  pointer-events: none;
-}
-
 .input-field label.active {
     font-size: 0.8rem;
     -webkit-transform: translateY(-15%);
@@ -118,6 +113,10 @@ footer.footer {
 .input-field input[type=number].ng-invalid {
   border-bottom: 1px solid #FF0000;
   box-shadow: 0 1px 0 0 #FF0000;
+}
+
+input[type="checkbox"] + label {
+  margin: 10px 0px;
 }
 
 .side-nav .collapsible-body li.active > a, .side-nav.fixed .collapsible-body li.active > a {

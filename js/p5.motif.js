@@ -29,6 +29,9 @@ p5.Normalizer.prototype = {
 
         if(this.first){
             this.first = false;
+            if(value == 0){
+                value = 0.00001;
+            }
             this.maximum = value;
             this.minimum = value;
         }

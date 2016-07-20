@@ -165,43 +165,7 @@
                 <li><h5>{{open.name}}</h5></li>
 
                  <subnav title="Properties" ng-if="open.props">
-                    <li ng-repeat="(name, prop) in open.props">
-                        <div class="input-field range-field listpadd col s12">
-                            <input
-                                ng-model="prop.value"
-                                type="{{prop.htmlType}}"
-                                placeholder="{{name}} {{field}}"
-                                id="{{$parent.$index+open.name+name+field}}"
-                                max="{{prop.max}}"
-                                min="{{prop.min}}"
-                                step="{{prop.step}}"
-                                ng-if="!prop.hidden && prop.htmlType != 'select'"
-                                ng-required="!prop.hidden"
-                                ng-change="prop.func(open, prop.value)"
-                            >
-                            <input
-                                ng-model="prop.value"
-                                class="rangeNumberInput"
-                                type="number"
-                                max="{{prop.max}}"
-                                min="{{prop.min}}"
-                                step="{{prop.step}}"
-                                ng-if="!prop.hidden && prop.htmlType != 'select' && prop.htmlType == 'range'"
-                                ng-required="!prop.hidden"
-                                ng-change="prop.func(open, prop.value)"
-                            >
-                            <select 
-                                ng-if="prop.htmlType == 'select'" 
-                                ng-options="val for val in prop.options" 
-                                ng-model="prop.value" 
-                                ng-change="prop.func()"
-                                class="browser-default"
-                                >
-                            </select>
-                            <label class="active" ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{name}}</label>
-                        </div>
-
-                    </li>
+                    <props list="open"></props>
                 </subnav>
 
 
@@ -215,24 +179,9 @@
                 </subnav>
 
                 <subnav title="Effects" ng-if="open.out">
-                    <subnav title="{{name}}" ng-repeat="(name, out) in open.out" ng-if="out.effects">
+                    <subnav title="{{name}}" ng-repeat="(name, out) in open.out" ng-if="out.effects.length > 0">
                         <subnav title="{{effect.name}}" ng-repeat="effect in out.effects">
-                            <li ng-repeat="(name, prop) in effect.props">
-                                <div class="input-field range-field listpadd col s12">
-                                    <input
-                                        ng-model="prop.value"
-                                        type="{{prop.htmlType}}"
-                                        placeholder="{{name}} {{field}}"
-                                        id="{{$parent.$index+open.name+name+field}}"
-                                        max="{{prop.max}}"
-                                        min="{{prop.min}}"
-                                        step="{{prop.step}}"
-                                        ng-hide="prop.hidden"
-                                        ng-required="!prop.hidden"
-                                    >
-                                    <label class="active" ng-hide="prop.hidden" for="{{$parent.$index+open.name+name+field}}">{{name}}</label>
-                                </div>
-                            </li>
+                            <props list="effect"></props>
                         </subnav>
                     </subnav>
                 </subnav>

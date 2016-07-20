@@ -104,9 +104,12 @@ function setupNormalDrawing(props, p5){
 }
 
 var setInstanceProps = function(parent){
-    angular.forEach(parent.props, function(prop, name){
-        parent.instance[name] = prop.value;
-    });
+    if(parent){
+        angular.forEach(parent.props, function(prop, name){
+            console.log(name, prop, parent.instance[name])
+            parent.instance[name] = prop.value;
+        });
+    }
 };
 
 //maps a value n with range between start1 and stop1 to a range between start2 and stop2

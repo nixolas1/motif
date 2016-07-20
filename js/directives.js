@@ -26,6 +26,20 @@ app.directive('subnav', function() {
   };
 });
 
+
+app.directive('props', function() {
+  return {
+    restrict: 'EA',
+    replace:true,
+    scope: {
+      list: '='
+    },
+    templateUrl: 'templates/props.html',
+    link: function(scope, element, attrs) {
+    }
+  };
+});
+
 app.config(['$compileProvider', function ($compileProvider) {
   $compileProvider.debugInfoEnabled(false);
 }])
