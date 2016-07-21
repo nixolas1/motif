@@ -20,8 +20,6 @@ p5.Normalizer = function(options){
     if(this.damping < 1)
         this.damping = 1;
 
-    console.log("added normalizer with", this)
-
 }
 
 p5.Normalizer.prototype = {

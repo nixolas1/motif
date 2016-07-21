@@ -23,6 +23,5 @@ MotifEffects = {
       debug: new BooleanField(false,            setInstanceProps),
     },
     instance: null,
-    affected: [] 
   }
 }

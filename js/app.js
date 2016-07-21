@@ -117,7 +117,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         if(newObject.add)
             newObject.instance = newObject.add(newObject.props);
 
-        newObject.name = newObject.name + "_" + ($scope.scene.objects.length+1);
+        newObject.name = newObject.name + NAME_SEPARATOR + ($scope.scene.objects.length+1);
         newObject.type = "object";
         newObject.undeletable = undeletable;
 
@@ -176,7 +176,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         });
 
         //give it a unique name
-        input.name = input.name + "_" + ($scope.scene.inputs.length+1);
+        input.name = input.name + NAME_SEPARATOR + ($scope.scene.inputs.length+1);
 
         $scope.scene.inputs.push(input);
         $scope.slowUpdate("select");
@@ -209,10 +209,13 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     }
 
 
-    $scope.addConnection = function(input, output, property, givenName, modifier){
+    $scope.addConnection = function(input, outputName, object, propertyName, modifier){
         var mod = modifier || 1;
-        var name = givenName || "unnamed";
-        input.affected.push({out: output, prop: property, modifier: mod, name: name});
+        var name = outputName + "->" + object.name + "." + propertyName;
+
+        var prop = object.props[propertyName];
+        var out = input.out[outputName];
+        input.affected.push({outputName: outputName, prop: prop, out: out, objectName: object.name, propertyName: propertyName, modifier: mod, name: name});
         $scope.slowUpdate("collapsible");
 
         return input.affected[input.affected.length -1];
@@ -232,6 +235,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
 
     $scope.updateLocalStorage = function(){
         localStorage.setItem(localTag, JSON.stringify($scope.saved));
+        console.log("stored", JSON.stringify($scope.saved))
     }
 
 
@@ -264,21 +268,65 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
             $scope.saved = {};
         }
 
+        //$scope.scene.clearLive(); y u brek?
         $scope.curSave.scene = {objects: $scope.scene.objects, inputs: $scope.scene.inputs};
         $scope.curSave.song = $scope.song;
         $scope.saved[$scope.curSave.name] = angular.copy($scope.curSave);
+        console.log("saved", $scope.saved[$scope.curSave.name])
+
         $scope.updateLocalStorage();
 
         $scope.slowUpdate("collapsible");
     };
 
+
     $scope.openSave = function(save){
         $scope.curSave = save;
-        $scope.scene = angular.merge($scope.scene, save.scene);
+
+        //clear the scene
+        $scope.scene.inputs = [];
+        $scope.scene.objects = [];
+
+        //define which elements to reload
+        var toImport = [
+            {elements: save.scene.objects, addFunction: $scope.addObject, getFrom: $scope.objects},
+            {elements: save.scene.inputs, addFunction: $scope.addInput, getFrom: $scope.inputs}
+        ]
+
+        //import each element by adding it normally, then merging with stored data
+        for (var i = 0; i < toImport.length; i++) {
+            var list = toImport[i];
+            angular.forEach(list.elements, function(element, name){
+
+                var splitPos = element.name.lastIndexOf(NAME_SEPARATOR);
+                var realName = element.name.substring(0, splitPos);
+                var toAdd = list.getFrom[realName];
+                var newElement = list.addFunction(toAdd);
+
+                angular.merge(newElement, element);
+
+                //rebuild parts of elements which have to be re-initialized
+                if(newElement.affected){
+                    reconnectAffected(newElement);
+                }
+
+                if(newElement.out){
+                    reconnectEffects(newElement);
+                }
+
+            });
+        };
+
+        //Set other data
         $scope.song = save.song;
 
+        console.log("Opened save with song", save.song, "and scene", $scope.scene);
+        //Reload with all new data
         $scope.restart();
+    }
 
+    $scope.uploadSave = function(save){
+        jQuery.post(SERVER_LIST_URL, {data: JSON.stringify(save)}, function(data){ console.log(data); });
     }
 
     $scope.deleteSave = function(save){
@@ -337,70 +385,100 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     }
 
 
-
-
-var sketch = function(p){
-    var parent;
-
-    p.preload = function(){
-        $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
-        
-        if(!$scope.song)
-            $scope.song = "songs/"+$scope.songs[Math.floor(Math.random() * $scope.songs.length)];
-
-        audio = p.loadSound($scope.song);
-        parent = $("#canvas-container");
-
-    }
-
-    p.setup = function () {
-        canvas = p.createCanvas(parent.width(), parent.height());
-        canvas.parent(parent.attr('id'));
-        
-
-        canvas.mouseClicked(function() {
-            if (audio.isPlaying() ){
-              audio.stop();
-            } else {
-              audio.play();
-            }
-        });
-
-        //init p5
-
-        $scope.slowUpdate("collapsible");
-        $scope.slowUpdate("select");
-
-        p.background(200,200,200);
-        p.colorMode(p.HSB, 360, 100, 100, 100);
-        p.rectMode(p.CENTER);
-        //audio.play();
-
-        $("#loading-container").remove();
-        $("footer").show();
-        p.windowResized();
-
-        console.log("Ready!");
-
-    }
-
-    p.draw = function () {
-        //$scope.scene.play(p);
-        if(audio.isPlaying()){
-            $scope.scene.clearLive()
-            $scope.scene.update();
+    function reconnectAffected(element){
+        var affected = element.affected;
+        if(affected){
+            for (var i = 0; i < affected.length; i++) {
+                var aff = affected[i];
+                var objectIndex = $scope.scene.objects.getIndexBy("name", aff.objectName)
+                aff.prop = $scope.scene.objects[objectIndex].props[aff.propertyName];
+                aff.out = element.out[aff.outputName];
+            };
         }
-        $scope.scene.draw(p);
     }
 
-    p.windowResized = function() {
-        var footerHeight = $("footer").height();
-        if(footerHeight > window.innerHeight/4) footerHeight = window.innerHeight/4;
-        if(footerHeight < 150) footerHeight = 150;
-        var height = window.innerHeight - footerHeight - 7;
-        p.resizeCanvas(parent.width(), height);
+    function reconnectEffects(element){
+        angular.forEach(element.out, function(out, name){
+            if(out.effects){
+                for (var i = 0; i < out.effects.length; i++) {
+                    var effect = out.effects[i];
+                    var newEffect = angular.copy($scope.effects[effect.name]);
+                    angular.merge(newEffect, effect);
+                    newEffect.add($scope.sketch);
+                    out.effects[i] = newEffect;
+                };
+            }
+        });            
     }
-}
+
+
+
+
+    var sketch = function(p){
+        var parent;
+
+        p.preload = function(){
+            $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
+            
+            if(!$scope.song)
+                $scope.song = "songs/"+$scope.songs[Math.floor(Math.random() * $scope.songs.length)];
+
+            audio = p.loadSound($scope.song);
+            parent = $("#canvas-container");
+
+        }
+
+        p.setup = function () {
+            canvas = p.createCanvas(parent.width(), parent.height());
+            canvas.parent(parent.attr('id'));
+            
+
+            canvas.mouseClicked(function() {
+                if (audio.isPlaying() ){
+                  audio.stop();
+                } else {
+                  audio.play();
+                }
+            });
+
+            //init p5
+
+            $scope.slowUpdate("collapsible");
+            $scope.slowUpdate("select");
+
+            p.background(200,200,200);
+            p.colorMode(p.HSB, 360, 100, 100, 100);
+            p.rectMode(p.CENTER);
+            //audio.play();
+
+            $("#loading-container").remove();
+            $("footer").show();
+            p.windowResized();
+
+            $scope.scene.clearLive();
+            $scope.scene.update();
+
+            console.log("Ready!");
+
+        }
+
+        p.draw = function () {
+            //$scope.scene.play(p);
+            if(audio.isPlaying()){
+                $scope.scene.clearLive();
+                $scope.scene.update();
+            }
+            $scope.scene.draw(p);
+        }
+
+        p.windowResized = function() {
+            var footerHeight = $("footer").height();
+            if(footerHeight > window.innerHeight/4) footerHeight = window.innerHeight/4;
+            if(footerHeight < 150) footerHeight = 150;
+            var height = window.innerHeight - footerHeight - 7;
+            p.resizeCanvas(parent.width(), height);
+        }
+    }
 
 
 });

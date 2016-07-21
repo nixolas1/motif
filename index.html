@@ -77,7 +77,7 @@
                     </li>
 
                     <li class="list-action light-green accent-4 waves-effect waves-light">
-                        <a ng-click="addConnection(con.input, con.output, con.prop, con.obj.name+'.'+getText('#obj-prop-con'))"  class="btn-block btn-outline text-white" href>
+                        <a ng-click="addConnection(con.input, getText('#out-con'), con.obj, getText('#obj-prop-con'))"  class="btn-block btn-outline text-white" href="#">
                             <i class="material-icons">add</i> Add {{con.prName}}
                         </a>
                     </li>
@@ -87,7 +87,7 @@
                 <subnav title="Effect">
                     <li>
                         <div class="input-field listpadd">
-                            <select ng-options="effect.name for effect in effects" ng-model="eff.eff" ng-change="clickSel()"></select>
+                            <select ng-options="effect.name for effect in effects" ng-model="eff.eff" ng-change="clickSel('input-eff')"></select>
                         </div>
                     </li>
 
@@ -95,9 +95,9 @@
 
                     <li>
                         <div class="input-field listpadd">
-                            <select ng-options="input.name for input in scene.inputs" ng-model="eff.input" ng-change="clickSel()"></select>
+                            <select id="input-eff" ng-options="input.name for input in scene.inputs" ng-model="eff.input" ng-change="clickSel('out-eff')"></select>
                         </div>
-                        <div class="input-field listpadd">
+                        <div id="out-eff" class="input-field listpadd">
                             <select ng-options="name for (name, out) in eff.input.out" ng-model="eff.output"></select>
                         </div>
                     </li>
@@ -125,9 +125,11 @@
                         
                     </li>
                     <li ng-repeat="save in saved">
-                        <a href="#" ng-click="openSave(save)" title="Open" class="waves-effect waves-teal">
-                            {{save.name}}
+                        <a title="Open" class="waves-effect waves-teal">
+                            <span ng-click="openSave(save)">{{save.name}}</span>
+                            
                             <span href="#" ng-click="deleteSave(save)" title="Delete" class="right waves-effect waves-red"><i class="material-icons">delete</i></span>
+                            <span href="#" ng-click="uploadSave(save)" title="Upload" class="right waves-effect waves-teal"><i class="material-icons">cloud_upload</i></span>
                         </a>
                     </li>
                 </subnav>
@@ -206,6 +208,8 @@
                                 <a ng-repeat="element in array" ng-click="selected(element)" href="#" class="collection-item">
                                     {{element.name}}
                                     <span ng-click="deleteIndex($index, array)" ng-if="!element.undeletable" title="Delete" href="#" class="right waves-effect waves-red"><i class="material-icons">delete</i></span>
+
+                                    <span ng-click="cloneElement(element)" title="Clone" href="#" class="right waves-effect waves-teal"><i class="material-icons">content_copy</i></span>
 
                                     <span ng-repeat="offset in offsets" href="#" ng-click="moveIndex($parent.$index, offset.dir, array)" title="Move {{offset.name}}" class="right"><i class="material-icons">{{offset.icon}}</i></span>
 

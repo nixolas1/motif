@@ -38,6 +38,8 @@ MotifObjects = {
 
             prop.width.real = args[2];
             prop.height.real = args[3];
+            prop.roundness.real = Math.abs(prop.roundness.value + prop.roundness.live);
+            args.push(prop.roundness.real);
             setupNormalDrawing(prop, p5);
 
             //args.push(prop.roundness);

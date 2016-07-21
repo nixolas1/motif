@@ -1,8 +1,20 @@
 
 var audio, canvas;
 var localTag = "motifs";
+var NAME_SEPARATOR = "_";
 var MAX_FREQ = 20000;
+var SERVER_LIST_URL = "./server/saves.php";
+
 var globalFFT = {};
+
+Array.prototype.getIndexBy = function (name, value) {
+    for (var i = 0; i < this.length; i++) {
+        if (this[i][name] == value) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 //Creates a dict for number inputs
 var NumberField = function(val, minimum, func, step){
