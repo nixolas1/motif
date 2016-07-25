@@ -338,7 +338,6 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
 
     $scope.getCloudSaves = function(){
         $http.get(SERVER_JSON_URL).then(function(res){
-            console.log(res)
             $scope.cloudSaves = res.data;
 
             $scope.slowUpdate("collapsible");              

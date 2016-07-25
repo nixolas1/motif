@@ -24,6 +24,13 @@ tanken i starten
 hvordan utviklingen var: startet med research, fant ikke det jeg ville lage, lagde musikk api, visualizer api, fant p5.js, jobbet på struktur til beat detection, lagde frontend, jobbet på å få elementer og enkle input til å affektere, angularize. bare jobbet med å få det til å fungere, ikke UX vennlig
 videre etter slutt
 
+Ideen
+Utvikling
+Teknologier
+Resultatet
+Demo
+Videre arbeid
+
 blog:
 hvordan utviklerfasen startet
 

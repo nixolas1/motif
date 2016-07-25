@@ -111,6 +111,7 @@ MotifObjects = {
             var multiplier = props.multiplier.value + props.multiplier.live;
             var zeroPadded = props.zeroPadded.value + props.zeroPadded.live;
             var isClosed = toPosInt(props.closed.value + props.closed.live) % 3;
+            var curve = props.curve.value + props.curve.live;
 
             if(isClosed){
                 p5.noFill();
@@ -125,15 +126,16 @@ MotifObjects = {
                 p5.vertex(posMap(-100, width), posMap(0, height));
             }
 
+
             for(var i = 0; i < pointLength; i++){
                 var x;
                 var y;
 
                 if(!isCoords){
-                    x = i * spacing/10;
+                    x = i * spacing/10 + curve*i;
                     x = remap(x, 0, pointLength, 0, width);
 
-                    y = points[i]*multiplier;
+                    y = points[i]*multiplier + curve*i;
                     y = remap(y, minimumVal, maximumVal, 0, height);
                 } else {
                     x = points[i][0];
@@ -163,10 +165,10 @@ MotifObjects = {
             points: new ArrayField(),
             
             shape: new RangeField(0, 0, 8, null, 1),
-            curved: new NumberField(0, 0),
-            closed: new NumberField(0, 0),
+            curved: new BooleanField(false),
+            closed: new BooleanField(false, null),
             tightness: new NumberField(0),
-            curve: new NumberField(1), //TODO bend vertex based on equation/number
+            curve: new NumberField(0),
             spacing: new NumberField(1, 0.0001, null, 0.1),
             x: new RangeField(0, -200, 200),
             y: new RangeField(0, -200, 200),
@@ -188,7 +190,7 @@ MotifObjects = {
             maximum: new NumberField(1),
             minimum: new NumberField(-1),
             multiplier: new NumberField(1),
-            zeroPadded: new RangeField(0, 0, 1, null, 1),
+            zeroPadded: new BooleanField(false),
 
 
         },
