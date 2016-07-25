@@ -1,5 +1,5 @@
 var app = angular.module('motif', []);
-app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
+app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $http) {
     $scope.con = {input:{}, output:{}, obj:{}, prop:{}, prName:null};
     $scope.eff = {input:{}, output:{}, eff:{}};
     $scope.saved = JSON.parse(localStorage.getItem(localTag));
@@ -33,6 +33,8 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
                 }
             });
         }
+
+        $scope.getCloudSaves();
     }
 
     $rootScope.log = function(toLog){
@@ -216,6 +218,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         var prop = object.props[propertyName];
         var out = input.out[outputName];
         input.affected.push({outputName: outputName, prop: prop, out: out, objectName: object.name, propertyName: propertyName, modifier: mod, name: name});
+        $scope.open = input;
         $scope.slowUpdate("collapsible");
 
         return input.affected[input.affected.length -1];
@@ -326,7 +329,20 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
     }
 
     $scope.uploadSave = function(save){
-        jQuery.post(SERVER_LIST_URL, {data: JSON.stringify(save)}, function(data){ console.log(data); });
+        jQuery.post(SERVER_LIST_URL, {data: JSON.stringify(save)}, function(data){ 
+            console.log(data);
+            $scope.getCloudSaves();
+        });
+    }
+
+
+    $scope.getCloudSaves = function(){
+        $http.get(SERVER_JSON_URL).then(function(res){
+            console.log(res)
+            $scope.cloudSaves = res.data;
+
+            $scope.slowUpdate("collapsible");              
+        });
     }
 
     $scope.deleteSave = function(save){
@@ -338,6 +354,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         array.splice(index, 1);
         $scope.slowUpdate("select");
         $scope.slowUpdate("collapsible");
+    }
+
+    $scope.cloneElement = function(element){
+        var clone = $scope.addObject(element);
+        clone.undeletable = false;
+        return clone;
     }
 
     $scope.moveIndex = function(index, offset, array){
@@ -365,6 +387,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope) {
         $scope.sketch.remove();
         $scope.init();
     }
+
 
 
     $scope.getText = function (id){

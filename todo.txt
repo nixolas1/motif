@@ -1,17 +1,15 @@
-1. save/restore localstorage functionality
 2. add remove button to right sidebar elements
-3. clone object
 
 multiline:
     * invert array
     * smooth array
     * add points
-    * fill
+    * ok fill
 
-7. multiplier as math function / function of other things
-10. optimize
-11. add time editing to footer
-12. filter
+maybe 7. multiplier as math function / function of other things
+maybe 10. optimize
+nope 11. add time editing to footer
+nope 12. filter
 
 BUGS:
 rotation
@@ -34,6 +32,7 @@ hvordan utviklerfasen startet
 
 
 
+ok . clone object
 ok1. add object to scene by clicking
 ok2. sync with options
 ok3. inputs

@@ -4,6 +4,7 @@ var localTag = "motifs";
 var NAME_SEPARATOR = "_";
 var MAX_FREQ = 20000;
 var SERVER_LIST_URL = "./server/saves.php";
+var SERVER_JSON_URL = "./server/list.json";
 
 var globalFFT = {};
 

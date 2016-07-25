@@ -132,6 +132,12 @@
                             <span href="#" ng-click="uploadSave(save)" title="Upload" class="right waves-effect waves-teal"><i class="material-icons">cloud_upload</i></span>
                         </a>
                     </li>
+                    <hr>
+                    <li ng-repeat="save in cloudSaves">
+                        <a title="Open" class="waves-effect waves-teal">
+                            <span ng-click="openSave(save)">{{save.name}}</span>
+                        </a>
+                    </li>
                 </subnav>
 
                 <subnav title="Songs">
@@ -209,7 +215,7 @@
                                     {{element.name}}
                                     <span ng-click="deleteIndex($index, array)" ng-if="!element.undeletable" title="Delete" href="#" class="right waves-effect waves-red"><i class="material-icons">delete</i></span>
 
-                                    <span ng-click="cloneElement(element)" title="Clone" href="#" class="right waves-effect waves-teal"><i class="material-icons">content_copy</i></span>
+                                    <span ng-if="!element.out" ng-click="cloneElement(element)" title="Clone" href="#" class="right waves-effect waves-teal"><i class="material-icons">content_copy</i></span>
 
                                     <span ng-repeat="offset in offsets" href="#" ng-click="moveIndex($parent.$index, offset.dir, array)" title="Move {{offset.name}}" class="right"><i class="material-icons">{{offset.icon}}</i></span>
 

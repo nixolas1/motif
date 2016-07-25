@@ -75,7 +75,6 @@ MotifObjects = {
                 return;
             }
 
-            p5.noFill();
 
             p5.strokeWeight(props.stroke.value + props.stroke.live);
             p5.stroke(toArgs(props, "color"));
@@ -111,6 +110,14 @@ MotifObjects = {
             var minimumVal = props.minimum.value;
             var multiplier = props.multiplier.value + props.multiplier.live;
             var zeroPadded = props.zeroPadded.value + props.zeroPadded.live;
+            var isClosed = toPosInt(props.closed.value + props.closed.live) % 3;
+
+            if(isClosed){
+                p5.noFill();
+            }
+            else{
+                p5.fill.apply(p5, toArgs(props, "color"));
+            }
 
             p5.beginShape(shape);
 
@@ -147,7 +154,7 @@ MotifObjects = {
                 p5.vertex(posMap(100, width), posMap(0, height));
             }
 
-            p5.endShape(toPosInt(props.closed.value + props.closed.live) % 3);
+            p5.endShape(isClosed);
             
         },
 
