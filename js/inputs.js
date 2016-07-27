@@ -93,16 +93,14 @@ MotifInputs = {
             onPeak: {
                 update: function(p){
                     this.instance.update(globalFFT.instance);
-                    console.log("detected", this.instance.isDetected)
                     return this.instance.isDetected;
                 },
-                dependent:  function(parent){return globalFFT.out.spectrum; },
-                dependentParent: globalFFT,
+                dependent:  function(parent){ return globalFFT.out.spectrum; },
+                dependentParent: function(){ return globalFFT; },
             },
             //todo: make ms since last
             framesSinceLastPeak: {
                 update: function(p){
-                    console.log("frames", this.instance.framesSinceLastPeak)
                     return this.instance.framesSinceLastPeak;
                 },
                 dependent:  function(parent){return parent.out.onPeak},
@@ -110,7 +108,6 @@ MotifInputs = {
 
             energy: {
                 update: function(p){
-                    console.log("energy", this.instance.penergy)
                     return this.instance.penergy;
                 },
                 dependent:  function(parent){return parent.out.onPeak},

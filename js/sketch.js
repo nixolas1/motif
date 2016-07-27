@@ -83,10 +83,12 @@ function toValues(propertiesObject){
 
 //Applies defined effects to an output and caches it
 function processOutput(out, input){
+    //check if it depends on any other output, and process that first
     if(out.dependent){
         var dependent = out.dependent(input);
         if(dependent && dependent.live == null){
-            dependent.live = processOutput(dependent, out.dependentParent || input);
+            var parent = out.dependentParent ? out.dependentParent() : input;
+            dependent.live = processOutput(dependent, parent);
         }
     }
     var processed = out.update.apply(input);

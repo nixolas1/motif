@@ -30,6 +30,7 @@ Teknologier
 Resultatet
 Demo
 Videre arbeid
+Hva ble lært
 
 blog:
 hvordan utviklerfasen startet

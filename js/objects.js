@@ -82,9 +82,7 @@ MotifObjects = {
             p5.strokeCap(Math.round(props.caps.value ));
             p5.curveTightness(props.tightness.value + props.tightness.live);
 
-            //var xywh = toArgs(props, "xywhs", p5);
             //console.log(xywh)
-            //p5.translate(xywh[0], xywh[1]);
             //p5.scale(xywh[2]+1, xywh[3]+1);
             //rotate
 
@@ -112,6 +110,8 @@ MotifObjects = {
             var zeroPadded = props.zeroPadded.value + props.zeroPadded.live;
             var isClosed = toPosInt(props.closed.value + props.closed.live) % 3;
             var curve = props.curve.value + props.curve.live;
+            var x_off = props.x.value + props.x.live;
+            var y_off = props.y.value + props.y.live;
 
             if(isClosed){
                 p5.noFill();
@@ -132,10 +132,10 @@ MotifObjects = {
                 var y;
 
                 if(!isCoords){
-                    x = i * spacing/10 + curve*i;
+                    x = i * spacing/10 + curve*i + x_off;
                     x = remap(x, 0, pointLength, 0, width);
 
-                    y = points[i]*multiplier + curve*i;
+                    y = points[i]*multiplier + curve*i + y_off;
                     y = remap(y, minimumVal, maximumVal, 0, height);
                 } else {
                     x = points[i][0];
@@ -170,8 +170,8 @@ MotifObjects = {
             tightness: new NumberField(0),
             curve: new NumberField(0),
             spacing: new NumberField(1, 0.0001, null, 0.1),
-            x: new RangeField(0, -200, 200),
-            y: new RangeField(0, -200, 200),
+            x: new RangeField(0, -1000, 1000),
+            y: new RangeField(0, -1000, 1000),
             height: new RangeField(0, 0, 200),
             width: new RangeField(0, 0, 200),
             size: new RangeField(0, 0, 200),

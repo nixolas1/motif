@@ -20,7 +20,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
             $scope.addObject($scope.objects.blending, {mode: "BLEND"});
             $scope.addObject($scope.objects.background, {saturation: 90, brightness: 90, hue:20});
             var input = globalFFT = $scope.addInput($scope.inputs.frequencies, true);
-
+            console.log("inin", globalFFT)
             var ellipse = $scope.addObject($scope.objects.ellipse);
             //var conn = $scope.addConnection(input, input.out.energy, ellipse.props.size, "points_test", 10);
             //$scope.addEffect(input.out.energy, $scope.effects.normalize);
@@ -109,6 +109,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
     };
 
 
+    //clones a given motif object, initializes it and adds it to the scene
     $scope.addObject = function(object, props, undeletable){
         var newObject = angular.copy(object);
         
@@ -190,10 +191,11 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
 
     $scope.addEffect = function(affected, effect, props){
         var newEffect = angular.copy(effect);
-        if(props)
-          angular.forEach(props, function(value, name) {
-              newEffect.props[name].value = value;
-          });
+        if(props){
+            angular.forEach(props, function(value, name) {
+                newEffect.props[name].value = value;
+            });
+        }
 
         if(newEffect.add)
             newEffect.add($scope.sketch);
@@ -435,10 +437,11 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
 
 
 
-
+    //the sketch is the p5.js logic function
     var sketch = function(p){
         var parent;
 
+        //before anything else
         p.preload = function(){
             $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
             
@@ -450,6 +453,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
 
         }
 
+        //after sound has been loaded
         p.setup = function () {
             canvas = p.createCanvas(parent.width(), parent.height());
             canvas.parent(parent.attr('id'));
@@ -462,8 +466,6 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
                   audio.play();
                 }
             });
-
-            //init p5
 
             $scope.slowUpdate("collapsible");
             $scope.slowUpdate("select");
@@ -484,6 +486,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
 
         }
 
+        //every tick
         p.draw = function () {
             //$scope.scene.play(p);
             if(audio.isPlaying()){
@@ -493,6 +496,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
             $scope.scene.draw(p);
         }
 
+        //on resize
         p.windowResized = function() {
             var footerHeight = $("footer").height();
             if(footerHeight > window.innerHeight/4) footerHeight = window.innerHeight/4;
