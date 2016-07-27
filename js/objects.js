@@ -123,7 +123,7 @@ MotifObjects = {
             p5.beginShape(shape);
 
             if(zeroPadded){
-                p5.vertex(posMap(-100, width), posMap(0, height));
+                p5.vertex(posMap(-100+x_off, width), posMap(0+y_off, height));
             }
 
 
@@ -153,7 +153,7 @@ MotifObjects = {
             }
 
             if(zeroPadded){
-                p5.vertex(posMap(100, width), posMap(0, height));
+                p5.vertex(posMap(100+x_off, width), posMap(0+y_off, height));
             }
 
             p5.endShape(isClosed);

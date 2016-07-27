@@ -443,7 +443,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
 
         //before anything else
         p.preload = function(){
-            $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
+            $scope.songs = ["bepop.mp3", "better.mp3", "breeze.mp3", "cold.mp3", "fade.mp3", "fuck.mp3", "funk.mp3", "good.mp3", "hungry.mp3", "intro_altj.mp3", "ipaena.mp3", "love.mp3", "matilda.mp3", "mykonos.mp3", "norge.mp3", "nothingness.mp3", "utopia.mp3", "pizza.mp3", "plans.mp3", "ridge.mp3", "sage.mp3"];
             
             if(!$scope.song)
                 $scope.song = "songs/"+$scope.songs[Math.floor(Math.random() * $scope.songs.length)];
