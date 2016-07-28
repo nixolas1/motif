@@ -148,14 +148,14 @@
                               <label for="song_name">Song url</label>
                             </div>
                             <div class="input-field col s5">
-                                <button title="Play" ng-click="selectSong(songUrl)" class="btn-block small-btn btn light-green accent-4 waves-effect waves-light text-white" href>
+                                <button title="Play" ng-click="selectSong('https://crossorigin.me/'+songUrl)" class="btn-block small-btn btn light-green accent-4 waves-effect waves-light text-white" href>
                                     <i class="material-icons">play_arrow</i>
                                 </button>
                             </div>
                         </div class="row">
                     </li>
                     <li ng-repeat="music in songs">
-                        <a href="#" ng-click="selectSong(music)" title="Select" class="waves-effect waves-teal">
+                        <a href="#" ng-click="selectSong('songs/'+music)" title="Select" class="waves-effect waves-teal">
                             {{music}}
                         </a>
                     </li>

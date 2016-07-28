@@ -378,7 +378,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
 
 
     $scope.selectSong = function(song){
-        $scope.song = "songs/"+song;
+        $scope.song = song;
 
         $scope.restart();
     }
