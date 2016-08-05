@@ -4,6 +4,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
     $scope.eff = {input:{}, output:{}, eff:{}};
     $scope.saved = JSON.parse(localStorage.getItem(localTag));
     $scope.curSave = {name: ""};
+    $scope.isLive = false;
     $scope.offsets = [{dir:1, name:"down", icon:"arrow_downward"}, {dir:-1, name:"up", icon:"arrow_upward"}]
 
 
@@ -380,6 +381,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
     $scope.selectSong = function(song){
         $scope.song = song;
 
+        if(song == "mic"){
+            $scope.isLive = true;
+        } else {
+            $scope.isLive = false;
+        }
+
         $scope.restart();
     }
 
@@ -448,7 +455,13 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
             if(!$scope.song)
                 $scope.song = "songs/"+$scope.songs[Math.floor(Math.random() * $scope.songs.length)];
 
-            audio = p.loadSound($scope.song);
+            if($scope.isLive){
+                audio = new p5.AudioIn()
+                audio.start();
+            }
+            else {
+                audio = p.loadSound($scope.song);
+            }
             parent = $("#canvas-container");
 
         }
@@ -460,10 +473,12 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
             
 
             canvas.mouseClicked(function() {
-                if (audio.isPlaying() ){
-                  audio.stop();
-                } else {
-                  audio.play();
+                if(!$scope.isLive){
+                    if (audio.isPlaying() ){
+                      audio.stop();
+                    } else {
+                      audio.play();
+                    }
                 }
             });
 
@@ -489,7 +504,7 @@ app.controller('mainCtrl', function($scope, $element, $timeout, $rootScope, $htt
         //every tick
         p.draw = function () {
             //$scope.scene.play(p);
-            if(audio.isPlaying()){
+            if($scope.isLive || audio.isPlaying()){
                 $scope.scene.clearLive();
                 $scope.scene.update();
             }
