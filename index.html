@@ -4,6 +4,7 @@
         <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
         <title>Motif</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.97.6/css/materialize.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <link href="css/fonts.css" rel="stylesheet">
         <link href="css/style.css" rel="stylesheet">
 
@@ -153,6 +154,11 @@
                                 </button>
                             </div>
                         </div class="row">
+                    </li>
+                    <li>
+                        <a href="#" ng-click="selectSong('mic')" title="Select" class="waves-effect waves-teal">
+                            Microphone
+                        </a>
                     </li>
                     <li ng-repeat="music in songs">
                         <a href="#" ng-click="selectSong('songs/'+music)" title="Select" class="waves-effect waves-teal">
